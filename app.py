@@ -36,6 +36,7 @@ if USER_CODE == NOT_LOGGED_IN and command[0:15] == "register editor":
 
 elif USER_CODE == NOT_LOGGED_IN and command[0:15] == "register author":
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
+        middle_initial = raw_input("ManuscriptManager> Enter your middle initial: ")
         last_name = raw_input("ManuscriptManager> Enter your last name: ")
         email = raw_input("ManuscriptManager> Enter your email: ")
         address = raw_input("ManuscriptManager> Enter your address: ")
@@ -43,10 +44,19 @@ elif USER_CODE == NOT_LOGGED_IN and command[0:15] == "register author":
         if first_name == "" or last_name == "" or email == "" or address == "" or affiliation == "":
             print("Registration failed. Make sure you enter a value for each field.")
         else:
-            # add to author table
-            # set the variable id = whatever id the DB generated
-            print("Welcome! Your id for login is " + str(id) + ".")
-            id = id + 1  # TODO: get rid of this when we have the db pk's working
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor()
+
+            query = "INSERT INTO author (firstName, emailAddress, mailingAddress, currentAffiliation, middleInitial, lastName) " \
+                    " VALUES (\"" + first_name + "\", \"" + email + "\", \"" + address+ "\", \"" + affiliation + "\", \"" + middle_initial+ "\", \"" + last_name + "\")"
+
+            cursor.execute(query)
+
+            id = cursor.lastrowid  # id of last added row
+            connection.commit()
+            cursor.close()
+            connection.close()
+            print("Welcome " + first_name + "! Your id for login is " + str(id) + ".")
 
 elif USER_CODE == NOT_LOGGED_IN and command[0:17] == "register reviewer":
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
