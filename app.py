@@ -8,7 +8,6 @@ AUTHOR = 2
 REVIEWER = 3
 
 user_code = NOT_LOGGED_IN;
-id = 1; # TODO: get rid of this when db is providing pk's
 id_of_logged_in_user = -1
 
 username = 'root'
@@ -132,11 +131,7 @@ while True:
                 ri_codes = [item[0] for item in cursor.fetchall()] # Gets all three RI Codes. cursor.fetchall() returns tuples, this only gets the value of each item
 
                 # Format input for interest table
-
                 formatted_input_list = ""
-
-
-                # (1,102), (1,103)
 
                 for idx, code in enumerate(ri_codes):
                     formatted_input_list = formatted_input_list + "(" + str(idReviewer) + "," + str(code) + ")"
@@ -151,32 +146,53 @@ while True:
                 print("Welcome! Your id for login is " + str(idReviewer) + ".")
 
     elif user_code == NOT_LOGGED_IN and command[0:5] == "login":
+        role = raw_input("ManuscriptManager> Enter your role (editor/reviewer/author): ")
         id = raw_input("ManuscriptManager> Enter your id for log-in: ")
-        #if id is in author table
-            # author_name = <get full author name from db>
-            # author_address = <get author address from db>
-            # print("Thanks for logging in!")
-            # print("Your name is " + author_name + ".")
-            # print("Your address is " + author_address + ".")
-            # status_print(AUTHOR)
-            # user_code = AUTHOR
-            # id_of_logged_in_user = id
-        #elif id is in editor table
-            # editor_name = <get full editor name>
-            # print("Thanks for logging in!")
-            # print("Your name is " + editor_name + ".")
-            # status_print(EDITOR)
-            # user_code = EDITOR
-            # id_of_logged_in_user = id
-        #elif id is in reviewer table
-            # reviewer_name = <get full reviewer name>
-            # print("Thanks for logging in!")
-            # print("Your name is " + reviewer_name + ".")
-            # status_print(REVIEWER)
-            # user_code = REVIEWER
-            # id_of_logged_in_user = id
-        #else:
-        print("That id does not exist.")
+
+        # If role is valid, check if id is in the table for that role
+        if role == "editor" or role == "reviewer" or role == "author":
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+            find_id_query = "SELECT * FROM " + role + " WHERE id" + role + " = " + id
+            cursor.execute(find_id_query)
+
+            # If id exists in the table, proceed
+            if cursor.rowcount == 1:
+                if role == "editor":
+                    editor_data = cursor.fetchone()
+
+                    author_name = editor_data[1] + " " + editor_data[3]
+                    print("Thanks for logging in!")
+                    print("Your name is " + author_name + ".")
+                    # status_print(EDITOR)
+                    user_code = EDITOR
+                    id_of_logged_in_user = editor_data[0]
+
+                elif role == "reviewer":
+                    reviewer_data = cursor.fetchone()
+
+                    reviewer_name = reviewer_data[1] + " " + reviewer_data[5]
+                    print("Thanks for logging in!")
+                    print("Your name is " + reviewer_name + ".")
+                    # status_print(REVIEWER)
+                    user_code = REVIEWER
+                    id_of_logged_in_user = id
+
+                elif role == "author":
+                    author_data = cursor.fetchone()
+
+                    author_name = author_data[1] + " " + author_data[6]
+                    print("Thanks for logging in!")
+                    print("Your name is " + author_name + ".")
+                    # status_print(AUTHOR)
+                    user_code = AUTHOR
+                    id_of_logged_in_user = id
+            else:
+                print("That id does not exist.")
+
+        else:
+            print("That is not a valid role.")
+
 
 
     # and so on and so forth
