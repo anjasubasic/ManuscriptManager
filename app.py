@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 #!/usr/bin/python
 import mysql.connector
+=======
+from collections import Counter
+>>>>>>> 7c8de4a922e05c2726013ebf6c7d6dafb272ae7c
 
 # User Codes
 NOT_LOGGED_IN = 0
@@ -8,6 +12,7 @@ AUTHOR = 2
 REVIEWER = 3
 
 USER_CODE = NOT_LOGGED_IN;
+<<<<<<< HEAD
 id = 1;
 username = 'root'
 password = 'password'
@@ -17,11 +22,22 @@ database = 'mydb'
 command = raw_input("ManuscriptManager> ")
 
 if USER_CODE == NOT_LOGGED_IN and command[0:15] == "register editor":
+=======
+id = 1; # TODO: get rid of this when db is providing pk's
+
+
+while True:
+
+    command = raw_input("ManuscriptManager> ")
+
+    if USER_CODE == NOT_LOGGED_IN and command[0:15] == "register editor":
+>>>>>>> 7c8de4a922e05c2726013ebf6c7d6dafb272ae7c
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
         last_name = raw_input("ManuscriptManager> Enter your last name: ")
         if first_name == "" or last_name == "":
             print("Registration failed. Make sure you enter a value for each field.")
         else:
+<<<<<<< HEAD
             connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
             cursor = connection.cursor()
             query = "INSERT INTO editor (firstName, middleInitial, lastName) VALUES (\"" + first_name + "\",\"\",\" " + last_name + "\")"
@@ -35,6 +51,15 @@ if USER_CODE == NOT_LOGGED_IN and command[0:15] == "register editor":
             print("Welcome " + first_name + "! Your id for login is " + str(id) + ".")
 
 elif USER_CODE == NOT_LOGGED_IN and command[0:15] == "register author":
+=======
+            # add to database editor: first name, last name, id (which is a global)
+            # set the variable id = whatever id the DB generated
+            print("Welcome! Your id for login is " + str(id) + ".")
+            id = id + 1 # TODO: get rid of this when we have the db pk's working
+
+
+    elif USER_CODE == NOT_LOGGED_IN and command[0:15] == "register author":
+>>>>>>> 7c8de4a922e05c2726013ebf6c7d6dafb272ae7c
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
         last_name = raw_input("ManuscriptManager> Enter your last name: ")
         email = raw_input("ManuscriptManager> Enter your email: ")
@@ -48,7 +73,11 @@ elif USER_CODE == NOT_LOGGED_IN and command[0:15] == "register author":
             print("Welcome! Your id for login is " + str(id) + ".")
             id = id + 1  # TODO: get rid of this when we have the db pk's working
 
+<<<<<<< HEAD
 elif USER_CODE == NOT_LOGGED_IN and command[0:17] == "register reviewer":
+=======
+    elif USER_CODE == NOT_LOGGED_IN and command[0:17] == "register reviewer":
+>>>>>>> 7c8de4a922e05c2726013ebf6c7d6dafb272ae7c
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
         last_name = raw_input("ManuscriptManager> Enter your last name: ")
         ri_codes = raw_input("ManuscriptManager> Enter 1 to 3 RICodes separated by spaces: ")
@@ -66,6 +95,19 @@ elif USER_CODE == NOT_LOGGED_IN and command[0:17] == "register reviewer":
 
     # and so on and so forth
 
+<<<<<<< HEAD
 else:
      print("Invalid command.")
+=======
+    else:
+        print("Invalid command.")
+
+
+
+
+
+
+
+
+>>>>>>> 7c8de4a922e05c2726013ebf6c7d6dafb272ae7c
 
