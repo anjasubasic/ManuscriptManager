@@ -1,4 +1,5 @@
-from collections import Counter
+#!/usr/bin/python
+import mysql.connector
 
 # User Codes
 NOT_LOGGED_IN = 0
@@ -9,6 +10,11 @@ REVIEWER = 3
 user_code = NOT_LOGGED_IN;
 id = 1; # TODO: get rid of this when db is providing pk's
 id_of_logged_in_user = -1
+
+username = 'root'
+password = 'password'
+host = '127.0.0.1'
+database = 'mydb'
 
 def status_print(user_type):
     if user_type == AUTHOR:
@@ -23,19 +29,28 @@ while True:
     command = raw_input("ManuscriptManager> ")
 
     if user_code == NOT_LOGGED_IN and command[0:15] == "register editor":
+
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
         last_name = raw_input("ManuscriptManager> Enter your last name: ")
         if first_name == "" or last_name == "":
             print("Registration failed. Make sure you enter a value for each field.")
         else:
-            # add to database editor: first name, last name, id (which is a global)
-            # set the variable id = whatever id the DB generated
-            print("Welcome! Your id for login is " + str(id) + ".")
-            id = id + 1 # TODO: get rid of this when we have the db pk's working
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor()
+            query = "INSERT INTO editor (firstName, middleInitial, lastName) VALUES (\"" + first_name + "\",\"\",\" " + last_name + "\")"
+            cursor.execute(query)
 
+            id = cursor.lastrowid # id of last added row
+            connection.commit()
+            cursor.close()
+            connection.close()
+
+            print("Welcome " + first_name + "! Your id for login is " + str(id) + ".")
 
     elif user_code == NOT_LOGGED_IN and command[0:15] == "register author":
+
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
+        middle_initial = raw_input("ManuscriptManager> Enter your middle initial: ")
         last_name = raw_input("ManuscriptManager> Enter your last name: ")
         email = raw_input("ManuscriptManager> Enter your email: ")
         address = raw_input("ManuscriptManager> Enter your address: ")
@@ -43,12 +58,22 @@ while True:
         if first_name == "" or last_name == "" or email == "" or address == "" or affiliation == "":
             print("Registration failed. Make sure you enter a value for each field.")
         else:
-            # add to author table
-            # set the variable id = whatever id the DB generated
-            print("Welcome! Your id for login is " + str(id) + ".")
-            id = id + 1  # TODO: get rid of this when we have the db pk's working
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor()
+
+            query = "INSERT INTO author (firstName, emailAddress, mailingAddress, currentAffiliation, middleInitial, lastName) " \
+                    " VALUES (\"" + first_name + "\", \"" + email + "\", \"" + address+ "\", \"" + affiliation + "\", \"" + middle_initial+ "\", \"" + last_name + "\")"
+
+            cursor.execute(query)
+
+            id = cursor.lastrowid  # id of last added row
+            connection.commit()
+            cursor.close()
+            connection.close()
+            print("Welcome " + first_name + "! Your id for login is " + str(id) + ".")
 
     elif user_code == NOT_LOGGED_IN and command[0:17] == "register reviewer":
+
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
         last_name = raw_input("ManuscriptManager> Enter your last name: ")
         ri_codes = raw_input("ManuscriptManager> Enter 1 to 3 RICodes separated by spaces: ")
@@ -97,12 +122,4 @@ while True:
 
     else:
         print("Invalid command.")
-
-
-
-
-
-
-
-
 
