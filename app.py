@@ -15,18 +15,47 @@ password = 'password'
 host = '127.0.0.1'
 database = 'mydb'
 
-def status_print(user_type):
+# # # STATUS COMMAND # # #
+def status_print(user_type, id):
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor()
+
     if user_type == AUTHOR:
-        print("hi")
+        query = "SELECT A.status, M.title " \
+                "FROM anyauthormanuscripts A " \
+                "INNER JOIN manuscript M on M.idManuscript = A.idManuscript " \
+                "WHERE idAuthor = " + str(id)
+        cursor.execute(query)
+
+        for (status, title) in cursor:
+            print("# {}, {}".format(title, status))
+
     elif user_type == EDITOR:
-        print("hi")
+        query = "SELECT * " \
+                "FROM whatsleft " \
+                "ORDER BY status, idManuscript"
+        cursor.execute(query)
+
+        for (manuscript, status, timestamp) in cursor:
+            print("# {}, {}, {}".format(status, manuscript, timestamp))
+
     elif user_type == REVIEWER:
-        print("hi")
+        query = "SELECT M.status, M.title " \
+                "FROM manuscript M " \
+                "INNER JOIN feedback F ON F.Manuscript_idManuscript = M.idManuscript " \
+                "WHERE F.Reviewer_idReviewer =" + str(id)
+        cursor.execute(query)
+
+        for (status, title) in cursor:
+            print("# {}, {}".format(status, title))
+
+    connection.close()
 
 while True:
 
     command = raw_input("ManuscriptManager> ")
 
+    # # # REGISTER # # #
     if user_code == NOT_LOGGED_IN and command[0:15] == "register editor":
 
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
@@ -145,6 +174,7 @@ while True:
                 connection.commit()
                 print("Welcome! Your id for login is " + str(idReviewer) + ".")
 
+    # # # LOGIN # # #
     elif user_code == NOT_LOGGED_IN and command[0:5] == "login":
         role = raw_input("ManuscriptManager> Enter your role (editor/reviewer/author): ")
         id = raw_input("ManuscriptManager> Enter your id for log-in: ")
@@ -160,43 +190,35 @@ while True:
             if cursor.rowcount == 1:
                 if role == "editor":
                     editor_data = cursor.fetchone()
+                    editor_id = editor_data[0]
+                    editor_name = editor_data[1] + " " + editor_data[3]
 
-                    author_name = editor_data[1] + " " + editor_data[3]
-                    print("Thanks for logging in!")
-                    print("Your name is " + author_name + ".")
-                    # status_print(EDITOR)
+                    print("Hi, " + editor_name + ".")
                     user_code = EDITOR
-                    id_of_logged_in_user = editor_data[0]
+                    status_print(EDITOR, editor_id)
 
                 elif role == "reviewer":
                     reviewer_data = cursor.fetchone()
-
+                    reviewer_id = reviewer_data[0]
                     reviewer_name = reviewer_data[1] + " " + reviewer_data[5]
-                    print("Thanks for logging in!")
-                    print("Your name is " + reviewer_name + ".")
-                    # status_print(REVIEWER)
+
+                    print("Hi, " + reviewer_name + ".")
                     user_code = REVIEWER
-                    id_of_logged_in_user = id
+                    status_print(REVIEWER, reviewer_id)
 
                 elif role == "author":
                     author_data = cursor.fetchone()
 
                     author_name = author_data[1] + " " + author_data[6]
-                    print("Thanks for logging in!")
-                    print("Your name is " + author_name + ".")
-                    # status_print(AUTHOR)
+                    author_address = author_data[3]
+                    author_id = author_data[0]
+                    print("Hi, " + author_name + ". Your address is: " + author_address + ".")
                     user_code = AUTHOR
-                    id_of_logged_in_user = id
+                    status_print(AUTHOR, author_id)
             else:
                 print("That id does not exist.")
-
         else:
             print("That is not a valid role.")
-
-
-
-    # and so on and so forth
-
     else:
         print("Invalid command.")
 
