@@ -43,11 +43,11 @@ while True:
     elif USER_CODE == NOT_LOGGED_IN and command[0:17] == "register reviewer":
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
         last_name = raw_input("ManuscriptManager> Enter your last name: ")
-        ri_codes = raw_input("ManuscriptManager> Enter 1 to 3 RICodes: ")
+        ri_codes = raw_input("ManuscriptManager> Enter 1 to 3 RICodes separated by spaces: ")
         ri_codes_list = ri_codes.split()
         if first_name == "" or last_name == "" or ri_codes == "":
             print("Registration failed. Make sure you enter a value for each field.")
-        if len(ri_code_list) > 3:
+        elif len(ri_codes_list) > 3:
             print("Registration failed. You can't enter more than 3 RICodes.")
         # verify that RICodes are "valid" print failure message if not valid
         else:
