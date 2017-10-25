@@ -76,6 +76,9 @@ while True:
 
         first_name = raw_input("ManuscriptManager> Enter your first name: ")
         last_name = raw_input("ManuscriptManager> Enter your last name: ")
+        middle_initial = raw_input("ManuscriptManager> Enter your middle initial: ")
+        affiliation = raw_input("ManuscriptManager> Enter your affiliation: ")
+        email = raw_input("ManuscriptManager> Enter your email address: ")
         ri_codes = raw_input("ManuscriptManager> Enter 1 to 3 RICodes separated by spaces: ")
         ri_codes_list = ri_codes.split()
         if first_name == "" or last_name == "" or ri_codes == "":
@@ -84,7 +87,18 @@ while True:
             print("Registration failed. You can't enter more than 3 RICodes.")
         # verify that RICodes are "valid" print failure message if not valid
         else:
-            # add to reviewer table, index into ri_codes_list to get each ri code
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor()
+            add_reviewer_query = "INSERT INTO reviewer (firstName, emailAddress, currentAffiliation, middleInitial, lastName) " \
+                    " VALUES (\"" + first_name + "\", \"" + email + "\", \"" + affiliation + "\", \"" + middle_initial + "\", \"" + last_name + "\") "
+            cursor.execute(query)
+            connection.commit()
+
+            idReviewer = cursor.lastrowid
+            idRICode = 1
+            add_interest_query = "INSERT INTO interest VALUES (\"" + idReviewer + "\", \"" + idRICode + "\") "
+            # TODO: THIS ISN'T DONE/READY FOR TESTING. Just pushing what I have so far. I added the RIValue to RICode table
+
             # set the variable id = whatever id the DB generated
             print("Welcome! Your id for login is " + str(id) + ".")
             id = id + 1  # TODO: get rid of this when we have the db pk's working
