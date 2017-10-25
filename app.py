@@ -79,50 +79,60 @@ while True:
         middle_initial = raw_input("ManuscriptManager> Enter your middle initial: ")
         affiliation = raw_input("ManuscriptManager> Enter your affiliation: ")
         email = raw_input("ManuscriptManager> Enter your email address: ")
-        ri_code1 = raw_input("ManuscriptManager> Enter RICode 1: ")
-        ri_code2 = raw_input("ManuscriptManager> Enter RICode 2: ")
-        ri_code3 = raw_input("ManuscriptManager> Enter RICode 3: ")
+        ri_codes = raw_input("ManuscriptManager> Enter 1 to 3 RICodes separated by the '/' character: ")
+        ri_codes_list = ri_codes.split('/')
+        num_of_entered_ri_codes = len(ri_codes_list)
+        print(num_of_entered_ri_codes)
 
-        connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
-        cursor = connection.cursor(buffered=True)
-        # Gets number of valid interests:
-        validate_interests_query = "SELECT COUNT(idRICode) FROM ricode WHERE RIValue IN (\"" + ri_code1 + "\", \"" + ri_code2 + "\", \"" + ri_code3 + "\")"
-        cursor.execute(validate_interests_query)
-        num_of_valid_codes = cursor.fetchone()[0]
-        connection.close()
-
-        if first_name == "" or last_name == "" or ri_code1 == "" or ri_code2 == "" or ri_code3 == "":
+        if first_name == "" or last_name == "" or ri_codes == "":
             print("Registration failed. Make sure you enter a value for each field.")
 
         # Number of valid codes must be 3 for reviewer to register
-        elif num_of_valid_codes < 3:
+        elif num_of_entered_ri_codes > 3:
             print("Registration failed. Make sure you enter valid RI codes.")
 
         else:
+
             connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
             cursor = connection.cursor(buffered=True)
-            # Add reviewer
-            add_reviewer_query = "INSERT INTO reviewer (firstName, emailAddress, currentAffiliation, middleInitial, lastName) " \
+            # Gets number of valid interests:
+            num_of_valid_codes = 0
+            for code in ri_codes_list:
+                validate_interests_query = "SELECT COUNT(idRICode) FROM ricode WHERE RIValue IN (\"" + code + "\")"
+                cursor.execute(validate_interests_query)
+                if cursor.fetchone()[0] == 1:
+                    num_of_valid_codes = num_of_valid_codes + 1
+                connection.close()
+
+            if num_of_valid_codes != num_of_entered_ri_codes:
+                print("Registration failed. You have entered one or more invalid RICodes.")
+
+            else:
+
+                connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+                cursor = connection.cursor(buffered=True)
+                # Add reviewer
+                add_reviewer_query = "INSERT INTO reviewer (firstName, emailAddress, currentAffiliation, middleInitial, lastName) " \
                     " VALUES (\"" + first_name + "\", \"" + email + "\", \"" + affiliation + "\", \"" + middle_initial + "\", \"" + last_name + "\") "
-            cursor.execute(add_reviewer_query)
-            connection.commit()
+                cursor.execute(add_reviewer_query)
+                connection.commit()
 
-            idReviewer = cursor.lastrowid
+                idReviewer = cursor.lastrowid
 
-            # Get RICode ids for selected interests
-            get_ricode_ids_query = "SELECT idRICode FROM ricode WHERE RIValue IN (\"" + ri_code1 + "\", \"" + ri_code2 + "\", \"" + ri_code3 + "\")"
-            cursor.execute(get_ricode_ids_query)
+                # Get RICode ids for selected interests
+                get_ricode_ids_query = "SELECT idRICode FROM ricode WHERE RIValue IN (\"" + ri_code1 + "\", \"" + ri_code2 + "\", \"" + ri_code3 + "\")"
+                cursor.execute(get_ricode_ids_query)
 
-            ri_codes = [item[0] for item in cursor.fetchall()] # Gets all three RI Codes. cursor.fetchall() returns tuples, this only gets the value of each item
+                ri_codes = [item[0] for item in cursor.fetchall()] # Gets all three RI Codes. cursor.fetchall() returns tuples, this only gets the value of each item
 
-            # Add to interest table
-            add_interest_query = "INSERT INTO interest VALUES (\"" + str(idReviewer) + "\", \"" + str(ri_codes[0]) + "\"), " \
+                # Add to interest table
+                add_interest_query = "INSERT INTO interest VALUES (\"" + str(idReviewer) + "\", \"" + str(ri_codes[0]) + "\"), " \
                                                             " (\"" + str(idReviewer) + "\", \"" + str(ri_codes[1]) + "\"), " \
                                                             " (\"" + str(idReviewer) + "\", \"" + str(ri_codes[2]) + "\") "
-            cursor.execute(add_interest_query)
+                cursor.execute(add_interest_query)
 
-            connection.commit()
-            print("Welcome! Your id for login is " + str(idReviewer) + ".")
+                connection.commit()
+                print("Welcome! Your id for login is " + str(idReviewer) + ".")
 
     elif user_code == NOT_LOGGED_IN and command[0:5] == "login":
         id = raw_input("ManuscriptManager> Enter your id for log-in: ")
