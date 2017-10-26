@@ -74,6 +74,7 @@ while True:
             connection.close()
 
             print("Welcome " + first_name + "! Your id for login is " + str(id) + ".")
+            id_of_logged_in_user = id
 
     elif user_code == NOT_LOGGED_IN and command[0:15] == "register author":
 
@@ -99,6 +100,7 @@ while True:
             cursor.close()
             connection.close()
             print("Welcome " + first_name + "! Your id for login is " + str(id) + ".")
+            id_of_logged_in_user = id
 
     elif user_code == NOT_LOGGED_IN and command[0:17] == "register reviewer":
 
@@ -173,6 +175,7 @@ while True:
 
                 connection.commit()
                 print("Welcome! Your id for login is " + str(idReviewer) + ".")
+                id_of_logged_in_user = id
 
     # # # LOGIN # # #
     elif user_code == NOT_LOGGED_IN and command[0:5] == "login":
@@ -195,6 +198,7 @@ while True:
 
                     print("Hi, " + editor_name + ".")
                     user_code = EDITOR
+                    id_of_logged_in_user = editor_id
                     status_print(EDITOR, editor_id)
 
                 elif role == "reviewer":
@@ -204,6 +208,7 @@ while True:
 
                     print("Hi, " + reviewer_name + ".")
                     user_code = REVIEWER
+                    id_of_logged_in_user = reviewer_id
                     status_print(REVIEWER, reviewer_id)
 
                 elif role == "author":
@@ -214,11 +219,51 @@ while True:
                     author_id = author_data[0]
                     print("Hi, " + author_name + ". Your address is: " + author_address + ".")
                     user_code = AUTHOR
+                    id_of_logged_in_user = author_id
                     status_print(AUTHOR, author_id)
             else:
                 print("That id does not exist.")
         else:
             print("That is not a valid role.")
+
+    # # # Author-specific commands # # #
+    elif user_code == AUTHOR and command[0:6] == "submit":
+        title = raw_input("ManuscriptManager> Enter title of paper: ")
+        affiliation = raw_input("ManuscriptManager> Enter your affiliation for this paper: ")
+        ri_code = raw_input("ManuscriptManager> Enter the RICode for this paper: ")
+        author2 = raw_input("ManuscriptManager> Enter the second author for this paper (leave blank if no second author): ")
+        author3 = raw_input("ManuscriptManager> Enter the third author for this paper (leave blank if no third author): ")
+        author4 = raw_input("ManuscriptManager> Enter the fourth author for this paper (leave blank if no fourth author): ")
+        filename = raw_input("ManuscriptManager> Enter your paper's filename: ")
+        if title == "" or affiliation == "" or ri_code == "" or filename == "":
+            print("Submission failed. One or more required fields were left blank.")
+        elif os.path.isFile(filename) == 0:  # invalid file
+            print("Submission failed. The specified file does not exist in your current directory.")
+        else: # invalid ri code
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+            validate_interests_query = "SELECT COUNT(idRICode) FROM ricode WHERE RIValue IN (\"" + ri_code + "\")"
+            cursor.execute(validate_interests_query)
+            if cursor.fetchone()[0] == 0:
+                print("Submission failed. Invalid RICode.")
+            else: # ri code was valid
+                # add submission to db (see details on assignment page)
+                manuscript_id = -1 # this is just a placeholder. to be changed based on what the db comes up with
+                print("Submission successful. Your manuscript's id is: " + manuscript_id)
+            connection.close()
+
+    elif user_code == AUTHOR and command[0:6] == "status":
+        status_print(AUTHOR, id_of_logged_in_user)
+
+    elif user_code == AUTHOR and command[0:7] == "retract":
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        are_you_sure = raw_input("ManuscriptManager> Are you sure you want to delete this manuscript? (y/n): ")
+        if are_you_sure == "n":
+            print("Canceled retraction")
+        elif are_you_sure == "y":
+            
+
+
     else:
         print("Invalid command.")
 
