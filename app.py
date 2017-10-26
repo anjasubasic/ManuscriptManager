@@ -257,11 +257,16 @@ while True:
 
     elif user_code == AUTHOR and command[0:7] == "retract":
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
-        are_you_sure = raw_input("ManuscriptManager> Are you sure you want to delete this manuscript? (y/n): ")
-        if are_you_sure == "n":
+        are_you_sure = raw_input("ManuscriptManager> Are you sure you want to delete this manuscript? (yes/no): ")
+        if are_you_sure == "no":
             print("Canceled retraction")
-        elif are_you_sure == "y":
-            
+        elif are_you_sure == "yes":
+            # delete manuscript from db as long as not sent for typesetting
+            print("Successfully deleted manuscript.")
+        else:
+            print("Invalid response.")
+
+    # # # Editor-specific commands # # #
 
 
     else:
