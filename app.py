@@ -443,14 +443,28 @@ while True:
     elif user_code == EDITOR and command[0:6] == "assign":
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
         reviewer_id = raw_input("ManuscriptManager> Enter reviewer ID: ")
+
         if manuscript_id == "" or reviewer_id == "":
             print("Assignment failed. Please enter information for all fields.")
+
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Assignment failed. Invalid Manuscript ID")
+
         elif id_is_valid(REVIEWER, reviewer_id) == False:
             print("Assignment failed. Invalid Reviewer ID")
+
         else:
-            # enter in db
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+
+            add_feedback_record_query = "INSERT INTO feedback values (" + str(manuscript_id) + "," + str(reviewer_id) \
+                                        + ", curdate(), 0, 0, 0, 0, null, '')"
+            cursor.execute(add_feedback_record_query)
+            connection.commit()
+
+            cursor.close()
+            connection.close()
+
             print("Successfully assigned manuscript to reviewer.")
 
     elif user_code == EDITOR and command[0:6] == "reject":
@@ -460,7 +474,21 @@ while True:
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Rejection failed. Manuscript ID is invalid.")
         else:
-            # reject in db
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+
+            # Updates the status of the manuscript to 'Rejected'
+            # The instructions say to also update the timestamp but I added a trigger that does that in the last lab.
+
+            reject_manuscript_query = "UPDATE manuscript " \
+                                      "SET status = 'Rejected' " \
+                                      "WHERE idManuscript = " + str(manuscript_id)
+            cursor.execute(reject_manuscript_query)
+            connection.commit()
+
+            cursor.close()
+            connection.close()
+
             print("Manuscript successfully rejected.")
 
     elif user_code == EDITOR and command[0:6] == "accept":
