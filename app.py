@@ -157,18 +157,28 @@ def issue_exists(issue_year, issue_period_number):
 
     return False
 
+# returns issue id given the publication year and number
+def get_issue_id_from_year_number(issue_year, issue_period_number):
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+
+    get_issue_id_query = "SELECT idIssue " \
+                         "FROM issue " \
+                         "WHERE publicationYear = '" + issue_year + "-01-01' " \
+                                                                    "AND periodNumber = " + issue_period_number
+    cursor.execute(get_issue_id_query)
+    issue_id = cursor.fetchone()[0]
+
+    cursor.close()
+    connection.close()
+
+    return issue_id
+
 # returns number of pages that issue would have if you added the pages in the manuscript specified by manuscript_id to the number of pages already in the issue
 def get_num_pages_in_issue(issue_year, issue_period_number, manuscript_id):
     connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
     cursor = connection.cursor(buffered=True)
-
-    # gets issue id from year and period number
-    get_issue_id_query = "SELECT idIssue " \
-                         "FROM issue " \
-                         "WHERE publicationYear = '" + issue_year + "-01-01' " \
-                         "AND periodNumber = " + issue_period_number
-    cursor.execute(get_issue_id_query)
-    issue_id = cursor.fetchone()[0]
+    issue_id = get_issue_id_from_year_number(issue_year, issue_period_number)
 
     # 1st sub-query: gets the sum of all pages for manuscripts currently scheduled for the given issue
     # 2nd sub-query: gets number of pages for the proposed manuscript
@@ -651,6 +661,14 @@ while True:
             cursor.execute(schedule_manuscript_query)
             connection.commit()
 
+            issue_id = get_issue_id_from_year_number(issue_year, issue_period_number)
+
+            update_acceptedmanuscript = "UPDATE acceptedmanuscript " \
+                                        "SET Issue_idIssue = " + str(issue_id) + " " \
+                                        "WHERE Manuscript_idManuscript = " + manuscript_id
+            cursor.execute(update_acceptedmanuscript)
+            connection.commit()
+
             cursor.close()
             connection.close()
 
@@ -659,16 +677,22 @@ while True:
     elif user_code == EDITOR and command[0:7] == "publish":
         issue_year = raw_input("ManuscriptManager> Enter issue year: ")
         issue_period = raw_input("ManuscriptManager> Enter issue period: ")
+
         if issue_year == "" or issue_period == "":
             print("Publish failed. Required fields left blank.")
+
         elif could_be_int(issue_year) == False:
             print("Publish failed. Invalid year.")
+
         elif could_be_int(issue_period_number) == False or int(issue_period_number) > 4 or int(issue_period_number) < 1:
             print("Publish failed. Invalid period number.")
+
         elif issue_exists(issue_year, issue_period_number) == False:
             print("Publish failed. That issue does not exist.")
+
         elif get_num_manuscripts_for_issue(issue_year, issue_period_number) < 1:
             print("Publish failed. There are no manuscripts scheduled for this issue.")
+
         else:
             # make db transactions related to publishing an issue, including setting all manuscripts' statuses to public
             print("Publish succeeded.")
