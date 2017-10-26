@@ -551,7 +551,7 @@ while True:
         appropriateness = raw_input("ManuscriptManager> Appropriateness rating (1 = low, 10 = high): ")
         clarity = raw_input("ManuscriptManager> Clarity rating (1 = low, 10 = high): ")
         methodology = raw_input("ManuscriptManager> Methodology rating (1 = low, 10 = high): ")
-        contribution = appropriateness = raw_input("ManuscriptManager> Contribution to field rating (1 = low, 10 = high): ")
+        contribution = raw_input("ManuscriptManager> Contribution to field rating (1 = low, 10 = high): ")
 
         if manuscript_id == "" or accept_or_reject == "" or appropriateness == "" or clarity == "" or methodology == "" or contribution == "":
             print("Review failed. Required fields left blank.")
@@ -570,12 +570,25 @@ while True:
         elif manuscript_is_in_review(manuscript_id) == False:
             print("Review failed. This manuscript is not currently in review.")
 
-        elif accept_or_reject == "accept":
-            #add review to db TODO: UPDATE existing row in the feedback table AFTER editor has added it
-            print("Thank you for your review!")
+        elif accept_or_reject == "accept" or accept_or_reject == "reject":
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+            # Gets number of valid interests:
 
-        elif accept_or_reject == "reject":
-            #add review to db TODO: UPDATE existing row in the feedback table AFTER editor has added it
+            validate_interests_query = "UPDATE feedback " \
+                                       "SET appropriateRating = " + str(appropriateness) + ", " \
+                                       "    clarityRating = " + str(clarity) + ", " \
+                                       "    methodologyRating =  " + str(methodology) + ", " \
+                                       "    contributionRating =  " + str(contribution) + ", " \
+                                       "    dateFeedbackReceived = curdate(),  "\
+                                       "    recommendation = \"" + accept_or_reject + "\"" \
+                                       " WHERE Manuscript_idManuscript = " + str(manuscript_id) + \
+                                       " AND Reviewer_idReviewer = " + str(id_of_logged_in_user)
+            cursor.execute(validate_interests_query)
+            connection.commit()
+            cursor.close()
+            connection.close()
+
             print("Thank you for your review!")
 
         else:
