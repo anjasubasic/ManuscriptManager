@@ -1,7 +1,10 @@
 #!/usr/bin/python
+import datetime
 import mysql.connector
 
 # User Codes / Table ids
+import os
+
 NOT_LOGGED_IN = 0
 EDITOR = 1
 AUTHOR = 2
@@ -119,6 +122,23 @@ def manuscript_is_assigned_to_reviewer(manuscript_id, id_of_logged_in_user):
 def manuscript_is_in_review(manuscript_id):
     return True
 
+def validate_ri_codes(ri_codes, num_of_entered_codes):
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+    # Gets number of valid interests:
+    num_of_valid_codes = 0
+    for code in ri_codes:
+        validate_interests_query = "SELECT COUNT(idRICode) FROM ricode WHERE RIValue IN (\"" + code + "\")"
+        cursor.execute(validate_interests_query)
+        if cursor.fetchone()[0] == 1:
+            num_of_valid_codes = num_of_valid_codes + 1
+    connection.close()
+
+    if num_of_valid_codes == num_of_entered_codes:
+        return True
+
+    return False
+
 
 ########################
 # # # Main Program # # #
@@ -189,24 +209,14 @@ while True:
         if first_name == "" or last_name == "" or ri_codes == "":
             print("Registration failed. Make sure you enter a value for each field.")
 
-        # Number of valid codes must be 3 for reviewer to register
+        # Number of entered codes must be less than 4 for reviewer to register
         elif num_of_entered_ri_codes > 3:
             print("Registration failed. Make sure you enter valid RI codes.")
 
         else:
-            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
-            cursor = connection.cursor(buffered=True)
-            # Gets number of valid interests:
-            num_of_valid_codes = 0
-            for code in ri_codes_list:
-                validate_interests_query = "SELECT COUNT(idRICode) FROM ricode WHERE RIValue IN (\"" + code + "\")"
-                cursor.execute(validate_interests_query)
-                if cursor.fetchone()[0] == 1:
-                    num_of_valid_codes = num_of_valid_codes + 1
+            input_valid = validate_ri_codes(ri_codes_list, num_of_entered_ri_codes)
 
-            connection.close()
-
-            if num_of_valid_codes != num_of_entered_ri_codes:
+            if not input_valid:
                 print("Registration failed. You have entered one or more invalid RICodes.")
 
             else:
@@ -258,49 +268,41 @@ while True:
         if role == "" or id == "":
             print("You left one or more required fields blank.")
 
-        # If role is valid, check if id is in the table for that role
-        elif role == "editor":
-            if id_is_valid(EDITOR, id):
-                editor_data = cursor.fetchone()
-                editor_id = editor_data[0]
-                editor_name = editor_data[1] + " " + editor_data[3]
+        if role == "editor" or role == "reviewer" or role == "author":
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+            find_id_query = "SELECT * FROM " + role + " WHERE id" + role + " = " + id
+            cursor.execute(find_id_query)
 
-                print("Hi, " + editor_name + ".")
-                user_code = EDITOR
-                id_of_logged_in_user = editor_id
-                status_print(EDITOR, editor_id)
-            else:
-                print("That id does not exist.")
+            # If role is valid, check if id is in the table for that role
+            if cursor.rowcount == 1:
+                if role == "editor":
+                    editor_data = cursor.fetchone()
+                    editor_id = editor_data[0]
+                    editor_name = editor_data[1] + " " + editor_data[3]
+                    print("Hi, " + editor_name + ".")
+                    user_code = EDITOR
+                    id_of_logged_in_user = editor_id
+                    status_print(EDITOR, editor_id)
 
-        elif role == "reviewer":
+                elif role == "reviewer":
+                    reviewer_data = cursor.fetchone()
+                    reviewer_id = reviewer_data[0]
+                    reviewer_name = reviewer_data[1] + " " + reviewer_data[5]
+                    print("Hi, " + reviewer_name + ".")
+                    user_code = REVIEWER
+                    id_of_logged_in_user = reviewer_id
+                    status_print(REVIEWER, reviewer_id)
 
-            if id_is_valid(REVIEWER, id):
-                reviewer_data = cursor.fetchone()
-                reviewer_id = reviewer_data[0]
-                reviewer_name = reviewer_data[1] + " " + reviewer_data[5]
-
-                print("Hi, " + reviewer_name + ".")
-                user_code = REVIEWER
-                id_of_logged_in_user = reviewer_id
-                status_print(REVIEWER, reviewer_id)
-            else:
-                print("That id does not exist.")
-
-        elif role == "author":
-            if id_is_valid(AUTHOR, id):
-
-                author_data = cursor.fetchone()
-
-                author_name = author_data[1] + " " + author_data[6]
-                author_address = author_data[3]
-                author_id = author_data[0]
-                print("Hi, " + author_name + ". Your address is: " + author_address + ".")
-                user_code = AUTHOR
-                id_of_logged_in_user = author_id
-                status_print(AUTHOR, author_id)
-            else:
-                print("That id does not exist.")
-
+                elif role == "author":
+                    author_data = cursor.fetchone()
+                    author_name = author_data[1] + " " + author_data[6]
+                    author_address = author_data[3]
+                    author_id = author_data[0]
+                    print("Hi, " + author_name + ". Your address is: " + author_address + ".")
+                    user_code = AUTHOR
+                    id_of_logged_in_user = author_id
+                    status_print(AUTHOR, author_id)
         else:
             print("That is not a valid role.")
 
@@ -308,27 +310,48 @@ while True:
     elif user_code == AUTHOR and command[0:6] == "submit":
         title = raw_input("ManuscriptManager> Enter title of paper: ")
         affiliation = raw_input("ManuscriptManager> Enter your affiliation for this paper: ")
-        ri_code = raw_input("ManuscriptManager> Enter the RICode for this paper: ")
+        ri_code = []
+        ri_code.append(raw_input("ManuscriptManager> Enter the RICode for this paper: "))
         author2 = raw_input("ManuscriptManager> Enter the second author for this paper (leave blank if no second author): ")
         author3 = raw_input("ManuscriptManager> Enter the third author for this paper (leave blank if no third author): ")
         author4 = raw_input("ManuscriptManager> Enter the fourth author for this paper (leave blank if no fourth author): ")
         filename = raw_input("ManuscriptManager> Enter your paper's filename: ")
+
         if title == "" or affiliation == "" or ri_code == "" or filename == "":
             print("Submission failed. One or more required fields were left blank.")
-        elif os.path.isFile(filename) == 0:  # invalid file
+
+        # Checks if file exists in current directory
+        elif os.path.isfile(filename) == 0:  # invalid file
             print("Submission failed. The specified file does not exist in your current directory.")
+
         else:
-            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
-            cursor = connection.cursor(buffered=True)
-            validate_interests_query = "SELECT COUNT(idRICode) FROM ricode WHERE RIValue IN (\"" + ri_code + "\")"
-            cursor.execute(validate_interests_query)
-            if cursor.fetchone()[0] == 0:
+            ri_code_valid = validate_ri_codes(ri_code, 1)
+
+            if not ri_code_valid:
                 print("Submission failed. Invalid RICode.")
-            else: # ri code was valid
-                # add submission to db (see details on assignment page)
-                manuscript_id = -1 # this is just a placeholder. to be changed based on what the db comes up with
-                print("Submission successful. Your manuscript's id is: " + manuscript_id)
-            connection.close()
+            else:
+                connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+                cursor = connection.cursor(buffered=True)
+
+                # Gets RICode id needed for the manuscript insert query below
+                get_ricode_ids_query = "SELECT idRICode FROM ricode WHERE RIValue = (\"" + ri_code[0] + "\")"
+                cursor.execute(get_ricode_ids_query)
+                ri_code_id = cursor.fetchone()[0]
+
+                add_manuscript_query = "INSERT INTO manuscript (title, dateReceived, status, Editor_idEditor, statusModifiedDateTime, RICode_idRICode) " \
+                                     " VALUES (\"" + title + "\", \"" + str(datetime.date.today()) + "\", \"" \
+                                       + "submitted" + "\"," + str(7) + ", \"" + str(datetime.date.today()) + "\"," + str(ri_code_id) + ")"
+
+                cursor.execute(add_manuscript_query)
+                connection.commit()
+                manuscript_id = cursor.lastrowid
+
+                submit_manuscript_query = "INSERT INTO submit VALUES (" + str(id_of_logged_in_user) + "," + str(manuscript_id) + ",1, \"" + affiliation + "\" )"
+                cursor.execute(submit_manuscript_query)
+                connection.commit()
+
+                print("Submission successful. Your manuscript's id is: " + str(manuscript_id))
+                connection.close()
 
     elif user_code == AUTHOR and command[0:6] == "status":
         status_print(AUTHOR, id_of_logged_in_user)
@@ -374,7 +397,7 @@ while True:
             print("Rejection failed. You didn't enter a manuscript ID.")
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Rejection failed. Manuscript ID is invalid.")
-        else
+        else:
             # reject in db
             print("Manuscript successfully rejected.")
 
@@ -413,7 +436,7 @@ while True:
             print("Schedule failed. Invalid manuscript id.")
         elif could_be_int(issue_year) == False:
             print("Schedule failed. Invalid year.")
-        elif could_be_int(issue_period_number) == FALSE or int(issue_period_number) > 4 or int(issue_period_number) < 1:
+        elif could_be_int(issue_period_number) == False or int(issue_period_number) > 4 or int(issue_period_number) < 1:
             print("Schedule failed. Invalid period number.")
         elif issue_exists(issue_year, issue_period_number) == False:
             print("Schedule failed. That issue does not exist.")
@@ -430,7 +453,7 @@ while True:
             print("Publish failed. Required fields left blank.")
         elif could_be_int(issue_year) == False:
             print("Publish failed. Invalid year.")
-        elif could_be_int(issue_period_number) == FALSE or int(issue_period_number) > 4 or int(issue_period_number) < 1:
+        elif could_be_int(issue_period_number) == False or int(issue_period_number) > 4 or int(issue_period_number) < 1:
             print("Publish failed. Invalid period number.")
         elif issue_exists(issue_year, issue_period_number) == False:
             print("Publish failed. That issue does not exist.")
@@ -445,7 +468,7 @@ while True:
         id = raw_input("ManuscriptManager> Enter your reviewer id: ")
         if id == "":
             print("You didn't enter an id.")
-        elif id_is_valid(REVIEWER, id) == FALSE:
+        elif id_is_valid(REVIEWER, id) == False:
             print("Invalid id.")
         else:
             # remove reviewer from system
