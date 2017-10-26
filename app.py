@@ -78,6 +78,12 @@ def id_is_valid(table, id):
 
     return False
 
+def could_be_int(string):
+    try:
+        int(string)
+        return True
+    except ValueError:
+        return False
 
 
 while True:
@@ -331,7 +337,51 @@ while True:
             # reject in db
             print("Manuscript successfully rejected.")
 
-    #elif user_code == EDITOR
+    elif user_code == EDITOR and command[0:6] == "accept":
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        if manuscript_id == "":
+            print("Acceptance failed. You didn't enter a manuscript ID.")
+        elif id_is_valid(MANUSCRIPT, manuscript_id):
+            print("Acceptance failed. Manuscript ID is invalid.")
+        #elif manuscript doesn't have 3 completed reviews
+            print("Acceptance failed. This manuscript doesn't yet have the required 3 reviews.")
+        else:
+            # accept in db
+            print("Manuscript successfully accepted.")
+
+    elif user_code == EDITOR and command[0:7] == "typeset":
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        pp = raw_input("ManuscriptManager> Enter number of pages: ")
+        if manuscript_id == "" or pp == "":
+            print("Typeset failed because you left some fields blank.")
+        elif id_is_valid(MANUSCRIPT, manuscript_id):
+            print("Typeset failed. Manuscript ID is invalid.")
+        elif could_be_int(pp) == False or int(pp) < 1:
+            print("Invalid number of pages.")
+        else:
+            # change status to typeset and store number of pages
+            print("Typeset successful.")
+
+    elif user_code == EDITOR and command[0:8] == "schedule":
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        issue_year = raw_input("ManuscriptManager> Enter issue year (4 digits): ")
+        issue_period_number = raw_input("ManuscriptManager> Enter issue period number (1/2/3/4): ")
+        if manuscript_id == "" or issue_year == "" or issue_period_number == "":
+            print("Schedule failed. Required fields left blank.")
+        elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
+            print("Schedule failed. Invalid manuscript id.")
+        elif could_be_int(issue_year) == False or int(issue_year) >= 2017:
+            print("Schedule failed. Year must be current or future.")
+        elif could_be_int(issue_period_number) == FALSE or int(issue_period_number) > 4 or int(issue_period_number) < 1:
+            print("Schedule failed. Invalid period number")
+        #elif issue would have more than 100 pages:
+            #print("Schedule failed because issues cannot have more than 100 pages!")
+        else:
+            # set status to scheduled
+            print("Manuscript successfully scheduled.")
+
+
+
 
 
     else:
