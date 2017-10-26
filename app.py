@@ -494,12 +494,21 @@ while True:
     # # # Reviewer-specific commands # # #
     elif user_code == REVIEWER and command[0:6] == "resign":
         id = raw_input("ManuscriptManager> Enter your reviewer id: ")
+
         if id == "":
             print("You didn't enter an id.")
+
         elif id_is_valid(REVIEWER, id) == False:
             print("Invalid id.")
+
         else:
-            # remove reviewer from system
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor()
+            query = "DELETE FROM reviewer WHERE idReviewer = " + str(id_of_logged_in_user)
+            cursor.execute(query)
+            connection.commit()
+            cursor.close()
+            connection.close()
             print("Thank you for your service.")
 
     elif user_code == REVIEWER and command[0:6] == "review":
