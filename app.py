@@ -205,7 +205,22 @@ def get_num_pages_in_issue(issue_year, issue_period_number, manuscript_id):
 
 # returns the number of manuscripts that are scheduled to be in this issue
 def get_num_manuscripts_for_issue(issue_year, issue_period_number):
-    return 0
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+
+    issue_id = get_issue_id_from_year_number(issue_year, issue_period_number)
+
+    get_num_manuscripts_query = "SELECT COUNT(*) " \
+                                "FROM acceptedManuscript " \
+                                "WHERE Issue_idIssue = " + str(issue_id)
+    cursor.execute(get_num_manuscripts_query)
+
+    num_of_manuscripts = cursor.rowcount
+
+    cursor.close()
+    connection.close()
+
+    return num_of_manuscripts
 
 # returns true if the manuscript is indeed assigned to the reviewer specified by the id_of_logged_in_user, false else
 def manuscript_is_assigned_to_reviewer(manuscript_id, id_of_logged_in_user):
@@ -676,9 +691,9 @@ while True:
 
     elif user_code == EDITOR and command[0:7] == "publish":
         issue_year = raw_input("ManuscriptManager> Enter issue year: ")
-        issue_period = raw_input("ManuscriptManager> Enter issue period: ")
+        issue_period_number = raw_input("ManuscriptManager> Enter issue period number: ")
 
-        if issue_year == "" or issue_period == "":
+        if issue_year == "" or issue_period_number == "":
             print("Publish failed. Required fields left blank.")
 
         elif could_be_int(issue_year) == False:
@@ -694,7 +709,28 @@ while True:
             print("Publish failed. There are no manuscripts scheduled for this issue.")
 
         else:
-            # make db transactions related to publishing an issue, including setting all manuscripts' statuses to public
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+
+            issue_id = get_issue_id_from_year_number(issue_year, issue_period_number)
+            # Changes status of manuscripts in given issue to 'published'
+            publish_manuscripts_query = "UPDATE manuscript M " \
+                                        "INNER JOIN acceptedmanuscript AM ON AM.Manuscript_idManuscript = M.idManuscript " \
+                                        "SET status = 'published' " \
+                                        "WHERE AM.Issue_idIssue = " + str(issue_id) + " AND M.status = 'scheduled'"
+            cursor.execute(publish_manuscripts_query)
+            connection.commit()
+
+            update_publication_date_query = "UPDATE issue " \
+                                            "SET printDate = curdate() " \
+                                            "WHERE idIssue = " + str(issue_id)
+
+            cursor.execute(update_publication_date_query)
+            connection.commit()
+
+            cursor.close()
+            connection.close()
+
             print("Publish succeeded.")
 
     # # # Reviewer-specific commands # # #
