@@ -400,7 +400,6 @@ while True:
             # change status to typeset and store number of pages
             print("Typeset successful.")
 
-    #todo add to readme ASSUMPTION: issues are pre-loaded into the db
     elif user_code == EDITOR and command[0:8] == "schedule":
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
         issue_year = raw_input("ManuscriptManager> Enter issue year (4 digits): ")
@@ -439,7 +438,6 @@ while True:
             print("Publish succeeded.")
 
     # # # Reviewer-specific commands # # #
-    # todo add to readme - ASSUMPTION: reviewer is already logged in...this seems to make more sense than what the instruction page implied
     elif user_code == REVIEWER and command[0:6] == "resign":
         id = raw_input("ManuscriptManager> Enter your reviewer id: ")
         if id == "":
@@ -479,7 +477,6 @@ while True:
             print("Invalid recommendation (must be 'accept' or 'reject').")
 
     # # # help command # # #
-    # todo in readme, mention that this command can be used
     elif command[0:4] == "help":
         print("Welcome to ManuscriptManager\n\n")
         print("General Commands:\n")
