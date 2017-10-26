@@ -75,16 +75,21 @@ def id_is_valid(table, id):
     elif table == MANUSCRIPT:
         table_name = "manuscript"
 
-    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
-    cursor = connection.cursor(buffered=True)
-    find_id_query = "SELECT * FROM " + table_name + " WHERE id" + table_name + " = " + id
-    cursor.execute(find_id_query)
+    if id.isdigit():
+        connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+        cursor = connection.cursor(buffered=True)
+        find_id_query = "SELECT * FROM " + table_name + " WHERE id" + table_name + " = " + id
+        cursor.execute(find_id_query)
 
-    # If id exists in the table, return true
-    if cursor.rowcount == 1:
-        return True
+        # If id exists in the table, return true
+        if cursor.rowcount == 1:
+            return True
 
-    return False
+        return False
+
+    else:
+        "Entered value is not an integer."
+        return False
 
 # returns true if the given string can be cast to an int
 def could_be_int(string):
@@ -96,7 +101,19 @@ def could_be_int(string):
 
 # returns true if manuscript has been typeset, false else
 def manuscript_is_typeset(manuscript_id):
-    return True
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+
+    # returns a row if manuscript is scheduled for publication, published or in typesetting. Otherwise returns 0 rows
+    find_id_query = "SELECT * " \
+                    "FROM manuscript " \
+                    "WHERE idManuscript = " + str(manuscript_id) + " AND status IN (\"scheduled for publication\", \"published\", \"in typesetting\")"
+    cursor.execute(find_id_query)
+
+    if cursor.rowcount == 1:
+        return True # manuscript is in typsetting/scheduled for publication/published
+
+    return False
 
 # returns number of reviews for manuscript
 def get_num_reviews(manuscript_id):
@@ -358,21 +375,32 @@ while True:
 
     elif user_code == AUTHOR and command[0:7] == "retract":
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+
         if manuscript_id == "":
             print("Canceled retraction. You did not enter a manuscript ID: ")
-        are_you_sure = raw_input("ManuscriptManager> Are you sure you want to delete this manuscript? (yes/no): ")
-        if are_you_sure == "no":
-            print("Canceled retraction")
-        elif are_you_sure == "yes":
-            if id_is_valid(MANUSCRIPT, manuscript_id) == False:
-                print("Invalid manuscript ID.")
-            elif manuscript_is_typeset(manuscript_id):
-                print("Manuscript has already been sent for typesetting. Too late!")
-            else:
-                # delete manuscript
-                print("Successfully deleted manuscript.")
+
         else:
-            print("Invalid response.")
+            are_you_sure = raw_input("ManuscriptManager> Are you sure you want to delete this manuscript? (yes/no): ")
+
+            if are_you_sure == "no":
+                print("Canceled retraction")
+
+            elif are_you_sure == "yes":
+                if id_is_valid(MANUSCRIPT, manuscript_id) == False:
+                    print("Invalid manuscript ID.")
+                elif manuscript_is_typeset(manuscript_id):
+                    print("Manuscript has already been sent for typesetting, or has been published already. Too late!")
+                else:
+                    # delete manuscript
+                    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+                    cursor = connection.cursor(buffered=True)
+                    delete_manuscript_query = "DELETE FROM manuscript WHERE idManuscript = " + str(manuscript_id)
+                    cursor.execute(delete_manuscript_query)
+                    connection.commit()
+                    connection.close()
+                    print("Successfully deleted manuscript.")
+            else:
+                print("Invalid response.")
 
     # # # Editor-specific commands # # #
     elif user_code == EDITOR and command[0:6] == "status":
