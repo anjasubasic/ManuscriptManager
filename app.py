@@ -255,8 +255,11 @@ while True:
         role = raw_input("ManuscriptManager> Enter your role (editor/reviewer/author): ")
         id = raw_input("ManuscriptManager> Enter your id for log-in: ")
 
+        if role == "" or id == "":
+            print("You left one or more required fields blank.")
+
         # If role is valid, check if id is in the table for that role
-        if role == "editor":
+        elif role == "editor":
             if id_is_valid(EDITOR, id):
                 editor_data = cursor.fetchone()
                 editor_id = editor_data[0]
@@ -476,6 +479,9 @@ while True:
         else:
             print("Invalid recommendation (must be 'accept' or 'reject').")
 
+    elif user_code == REVIEWER and command[0:6] == "status":
+        status_print(REVIEWER, id_of_logged_in_user)
+
     # # # help command # # #
     elif command[0:4] == "help":
         print("Welcome to ManuscriptManager\n\n")
@@ -499,6 +505,7 @@ while True:
         print("Commands for reviewers\n")
         print("resign - stop being a reviewer")
         print("review - review a manuscript")
+        print("status - see the status of your manuscripts")
 
     else:
         print("Invalid command.")

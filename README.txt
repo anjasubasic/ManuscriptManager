@@ -12,3 +12,6 @@ Assumptions:
   for "creating" and issue, only adding manuscripts to an issue.) In our provided sql code, we have populated the issue table.
 - We assume that a reviewer can only resign once s/he is logged in. The assignment page seemed to imply that this command could
   be run without logging in, but we didn't think that made much sense.
+
+Our test cases:
+- Please see test_cases.txt for the cases we used to test our app.
