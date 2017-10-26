@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import mysql.connector
 
-# User Codes
+# User Codes / Table ids
 NOT_LOGGED_IN = 0
 EDITOR = 1
 AUTHOR = 2
@@ -10,15 +10,20 @@ REVIEWER = 3
 # Other table ids
 MANUSCRIPT = 4
 
+# state variables
 user_code = NOT_LOGGED_IN;
 id_of_logged_in_user = -1
 
+# constants
 username = 'root'
 password = 'password'
 host = '127.0.0.1'
 database = 'mydb'
 
-# # # STATUS COMMAND # # #
+############################
+# # # HELPER FUNCTIONS # # #
+############################
+
 def status_print(user_type, id):
     connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
     cursor = connection.cursor()
@@ -54,7 +59,7 @@ def status_print(user_type, id):
 
     connection.close()
 
-# should return true if the id is in the corresp db
+# should return true if the id is in the corresponding db, false else
 def id_is_valid(table, id):
 
     table_name = ""
@@ -78,6 +83,7 @@ def id_is_valid(table, id):
 
     return False
 
+# returns true if the given string can be cast to an int
 def could_be_int(string):
     try:
         int(string)
@@ -85,6 +91,38 @@ def could_be_int(string):
     except ValueError:
         return False
 
+# returns true if manuscript has been typeset, false else
+def manuscript_is_typeset(manuscript_id):
+    return True
+
+# returns number of reviews for manuscript
+def get_num_reviews(manuscript_id):
+    return 0
+
+# returns true if this issue exists, false else
+def issue_exists(issue_year, issue_period_number):
+    return True
+
+# returns number of pages that issue would have if you added the pages in the manuscript specified by manuscript_id to the number of pages already in the issue
+def get_num_pages_in_issue(issue_year, issue_period_number, manuscript_id):
+    return 0
+
+# returns the number of manuscripts that are scheduled to be in this issue
+def get_num_manuscripts_for_issue(issue_year, issue_period_number):
+    return 0
+
+# returns true if the manuscript is indeed assigned to the reviewer specified by the id_of_logged_in_user, false else
+def manuscript_is_assigned_to_reviewer(manuscript_id, id_of_logged_in_user):
+    return True
+
+# return true if the manuscript is in review as its status, false else
+def manuscript_is_in_review(manuscript_id):
+    return True
+
+
+########################
+# # # Main Program # # #
+########################
 
 while True:
 
@@ -276,7 +314,7 @@ while True:
             print("Submission failed. One or more required fields were left blank.")
         elif os.path.isFile(filename) == 0:  # invalid file
             print("Submission failed. The specified file does not exist in your current directory.")
-        else: # invalid ri code
+        else:
             connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
             cursor = connection.cursor(buffered=True)
             validate_interests_query = "SELECT COUNT(idRICode) FROM ricode WHERE RIValue IN (\"" + ri_code + "\")"
@@ -302,8 +340,8 @@ while True:
         elif are_you_sure == "yes":
             if id_is_valid(MANUSCRIPT, manuscript_id) == False:
                 print("Invalid manuscript ID.")
-            #elif manuscript has been sent for typesetting:
-                #print("Manuscript has already been sent for typesetting. Too late!")
+            elif manuscript_is_typeset(manuscript_id):
+                print("Manuscript has already been sent for typesetting. Too late!")
             else:
                 # delete manuscript
                 print("Successfully deleted manuscript.")
@@ -343,7 +381,7 @@ while True:
             print("Acceptance failed. You didn't enter a manuscript ID.")
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Acceptance failed. Manuscript ID is invalid.")
-        #elif manuscript doesn't have 3 completed reviews
+        elif get_num_reviews(manuscript_id) < 3:
             print("Acceptance failed. This manuscript doesn't yet have the required 3 reviews.")
         else:
             # accept in db
@@ -375,10 +413,10 @@ while True:
             print("Schedule failed. Invalid year.")
         elif could_be_int(issue_period_number) == FALSE or int(issue_period_number) > 4 or int(issue_period_number) < 1:
             print("Schedule failed. Invalid period number.")
-        #elif issue is not in issue table:
-            #print("Schedule failed. That issue does not exist.")
-        #elif issue would have more than 100 pages:
-            #print("Schedule failed because issues cannot have more than 100 pages!")
+        elif issue_exists(issue_year, issue_period_number) == False:
+            print("Schedule failed. That issue does not exist.")
+        elif get_num_pages_in_issue(issue_year, issue_period_number, manuscript_id) > 100:
+            print("Schedule failed because issues cannot have more than 100 pages!")
         else:
             # set status to scheduled
             print("Manuscript successfully scheduled.")
@@ -392,16 +430,15 @@ while True:
             print("Publish failed. Invalid year.")
         elif could_be_int(issue_period_number) == FALSE or int(issue_period_number) > 4 or int(issue_period_number) < 1:
             print("Publish failed. Invalid period number.")
-        # elif issue is not in issue table:
-            # print("Publish failed. That issue does not exist.")
-        # elif no manuscripts scheduled for this issue
-            # print("Publish failed. There are no manuscripts scheduled for this issue.")
+        elif issue_exists(issue_year, issue_period_number) == False:
+            print("Publish failed. That issue does not exist.")
+        elif get_num_manuscripts_for_issue(issue_year, issue_period_number) < 1:
+            print("Publish failed. There are no manuscripts scheduled for this issue.")
         else:
             # make db transactions related to publishing an issue, including setting all manuscripts' statuses to public
             print("Publish succeeded.")
 
     # # # Reviewer-specific commands # # #
-
     # todo add to readme - ASSUMPTION: reviewer is already logged in...this seems to make more sense than what the instruction page implied
     elif user_code == REVIEWER and command[0:6] == "resign":
         id = raw_input("ManuscriptManager> Enter your reviewer id: ")
@@ -428,10 +465,10 @@ while True:
             or int(appropriateness) < 1 or int(appropriateness) > 10 or int(clarity) < 1 or int(clarity) > 10 or int(methodology) < 1 or int(methodology) > 10 \
             or int(contribution) < 1 or int(contribution) > 10:
             print("One or more invalid ratings. Ratings must be a number between 1 and 10, inclusive.")
-        #elif manuscript not assigned to this reviewer
-            #print("Review failed. You are not a reviewer for this manuscript.")
-        #elif manuscript not in review status
-            #print("Review failed. This manuscript is not currently in review.")
+        elif manuscript_is_assigned_to_reviewer(manuscript_id, id_of_logged_in_user) == False:
+            print("Review failed. You are not a reviewer for this manuscript.")
+        elif manuscript_is_in_review(manuscript_id) == False:
+            print("Review failed. This manuscript is not currently in review.")
         elif accept_or_reject == "accept":
             #add review to db
             print("Thank you for your review!")
@@ -441,6 +478,7 @@ while True:
         else:
             print("Invalid recommendation (must be 'accept' or 'reject').")
 
+    # # # help command # # #
     # todo in readme, mention that this command can be used
     elif command[0:4] == "help":
         print("Welcome to ManuscriptManager\n\n")
@@ -465,7 +503,5 @@ while True:
         print("resign - stop being a reviewer")
         print("review - review a manuscript")
 
-
     else:
         print("Invalid command.")
-
