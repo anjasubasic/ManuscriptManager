@@ -362,6 +362,7 @@ while True:
             # change status to typeset and store number of pages
             print("Typeset successful.")
 
+    # ASSUMPTION: issues are pre-loaded into the db
     elif user_code == EDITOR and command[0:8] == "schedule":
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
         issue_year = raw_input("ManuscriptManager> Enter issue year (4 digits): ")
@@ -370,15 +371,36 @@ while True:
             print("Schedule failed. Required fields left blank.")
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Schedule failed. Invalid manuscript id.")
-        elif could_be_int(issue_year) == False or int(issue_year) >= 2017:
-            print("Schedule failed. Year must be current or future.")
+        elif could_be_int(issue_year):
+            print("Schedule failed. Invalid year.")
         elif could_be_int(issue_period_number) == FALSE or int(issue_period_number) > 4 or int(issue_period_number) < 1:
-            print("Schedule failed. Invalid period number")
+            print("Schedule failed. Invalid period number.")
+        #elif issue is not in issue table:
+            #print("Schedule failed. That issue does not exist.")
         #elif issue would have more than 100 pages:
             #print("Schedule failed because issues cannot have more than 100 pages!")
         else:
             # set status to scheduled
             print("Manuscript successfully scheduled.")
+
+    elif user_code == EDITOR and command[0:7] == "publish":
+        issue_year = raw_input("ManuscriptManager> Enter issue year: ")
+        issue_period = raw_input("ManuscriptManager> Enter issue period: ")
+        if issue_year == "" or issue_period == "":
+            print("Publish failed. Required fields left blank.")
+        elif could_be_int(issue_year):
+            print("Publish failed. Invalid year.")
+        elif could_be_int(issue_period_number) == FALSE or int(issue_period_number) > 4 or int(issue_period_number) < 1:
+            print("Publish failed. Invalid period number.")
+        # elif issue is not in issue table:
+            # print("Publish failed. That issue does not exist.")
+        # elif no manuscripts scheduled for this issue
+            # print("Publish failed. There are no manuscripts scheduled for this issue.")
+        else:
+            # make db transactions related to publishing an issue, including setting all manuscripts' statuses to public
+            print("Publish succeeded.")
+
+    
 
 
 
