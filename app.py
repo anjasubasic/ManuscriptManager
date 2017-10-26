@@ -122,7 +122,19 @@ def manuscript_is_typeset(manuscript_id):
 
 # returns number of reviews for manuscript
 def get_num_reviews(manuscript_id):
-    return 0
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+
+    get_completed_reviews_query = "SELECT * " \
+                                  "FROM feedback " \
+                                  "WHERE Manuscript_idManuscript = " + str(manuscript_id) + \
+                                  " AND recommendation IN ('accept', 'reject')"
+    cursor.execute(get_completed_reviews_query)
+    num_of_reviews = cursor.rowcount
+    cursor.close()
+    connection.close()
+
+    return num_of_reviews
 
 # returns true if this issue exists, false else
 def issue_exists(issue_year, issue_period_number):
@@ -477,11 +489,11 @@ while True:
             connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
             cursor = connection.cursor(buffered=True)
 
-            # Updates the status of the manuscript to 'Rejected'
+            # Updates the status of the manuscript to 'rejected'
             # The instructions say to also update the timestamp but I added a trigger that does that in the last lab.
 
             reject_manuscript_query = "UPDATE manuscript " \
-                                      "SET status = 'Rejected' " \
+                                      "SET status = 'rejected' " \
                                       "WHERE idManuscript = " + str(manuscript_id)
             cursor.execute(reject_manuscript_query)
             connection.commit()
@@ -493,14 +505,31 @@ while True:
 
     elif user_code == EDITOR and command[0:6] == "accept":
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+
         if manuscript_id == "":
             print("Acceptance failed. You didn't enter a manuscript ID.")
+
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Acceptance failed. Manuscript ID is invalid.")
+
         elif get_num_reviews(manuscript_id) < 3:
             print("Acceptance failed. This manuscript doesn't yet have the required 3 reviews.")
+
         else:
-            # accept in db
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+
+            # Updates the status of the manuscript to 'accepted'
+            # The instructions say to also update the timestamp but I added a trigger that does that in the last lab.
+
+            reject_manuscript_query = "UPDATE manuscript " \
+                                      "SET status = 'accepted' " \
+                                      "WHERE idManuscript = " + str(manuscript_id)
+            cursor.execute(reject_manuscript_query)
+            connection.commit()
+
+            cursor.close()
+            connection.close()
             print("Manuscript successfully accepted.")
 
     elif user_code == EDITOR and command[0:7] == "typeset":
