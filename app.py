@@ -111,7 +111,12 @@ def manuscript_is_typeset(manuscript_id):
     cursor.execute(find_id_query)
 
     if cursor.rowcount == 1:
+        cursor.close()
+        connection.close()
         return True # manuscript is in typsetting/scheduled for publication/published
+
+    cursor.close()
+    connection.close()
 
     return False
 
@@ -133,11 +138,38 @@ def get_num_manuscripts_for_issue(issue_year, issue_period_number):
 
 # returns true if the manuscript is indeed assigned to the reviewer specified by the id_of_logged_in_user, false else
 def manuscript_is_assigned_to_reviewer(manuscript_id, id_of_logged_in_user):
-    return True
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+
+    reviewer_manuscript_query = "SELECT * FROM feedback WHERE Reviewer_idReviewer = " + str(id_of_logged_in_user) \
+                                + " AND Manuscript_idManuscript = " + str(manuscript_id)
+    cursor.execute(reviewer_manuscript_query)
+
+    if cursor.rowcount == 1:
+        return True
+
+    return False
 
 # return true if the manuscript is in review as its status, false else
 def manuscript_is_in_review(manuscript_id):
-    return True
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+
+    # returns a row if manuscript is being reviewed (status = "reviewing")
+    find_id_query = "SELECT * " \
+                    "FROM manuscript " \
+                    "WHERE idManuscript = " + str(manuscript_id) + " AND status = \"reviewing\""
+    cursor.execute(find_id_query)
+
+    if cursor.rowcount == 1:
+        cursor.close()
+        connection.close()
+        return True  # manuscript has status "reviewing"
+
+    cursor.close()
+    connection.close()
+
+    return False
 
 def validate_ri_codes(ri_codes, num_of_entered_codes):
     connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
@@ -149,6 +181,8 @@ def validate_ri_codes(ri_codes, num_of_entered_codes):
         cursor.execute(validate_interests_query)
         if cursor.fetchone()[0] == 1:
             num_of_valid_codes = num_of_valid_codes + 1
+
+    cursor.close()
     connection.close()
 
     if num_of_valid_codes == num_of_entered_codes:
@@ -518,24 +552,32 @@ while True:
         clarity = raw_input("ManuscriptManager> Clarity rating (1 = low, 10 = high): ")
         methodology = raw_input("ManuscriptManager> Methodology rating (1 = low, 10 = high): ")
         contribution = appropriateness = raw_input("ManuscriptManager> Contribution to field rating (1 = low, 10 = high): ")
-        if manuscript_id == "" or accept_or_reject == "":
+
+        if manuscript_id == "" or accept_or_reject == "" or appropriateness == "" or clarity == "" or methodology == "" or contribution == "":
             print("Review failed. Required fields left blank.")
+
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Review failed. Invalid manuscript id.")
+
         elif could_be_int(appropriateness) == False or could_be_int(clarity) == False or could_be_int(methodology) == False or could_be_int(contribution) == False \
             or int(appropriateness) < 1 or int(appropriateness) > 10 or int(clarity) < 1 or int(clarity) > 10 or int(methodology) < 1 or int(methodology) > 10 \
             or int(contribution) < 1 or int(contribution) > 10:
             print("One or more invalid ratings. Ratings must be a number between 1 and 10, inclusive.")
+
         elif manuscript_is_assigned_to_reviewer(manuscript_id, id_of_logged_in_user) == False:
             print("Review failed. You are not a reviewer for this manuscript.")
+
         elif manuscript_is_in_review(manuscript_id) == False:
             print("Review failed. This manuscript is not currently in review.")
+
         elif accept_or_reject == "accept":
-            #add review to db
+            #add review to db TODO: UPDATE existing row in the feedback table AFTER editor has added it
             print("Thank you for your review!")
+
         elif accept_or_reject == "reject":
-            #add review to db
+            #add review to db TODO: UPDATE existing row in the feedback table AFTER editor has added it
             print("Thank you for your review!")
+
         else:
             print("Invalid recommendation (must be 'accept' or 'reject').")
 
