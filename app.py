@@ -331,7 +331,7 @@ while True:
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
         if manuscript_id == "":
             print("Rejection failed. You didn't enter a manuscript ID.")
-        elif id_is_valid(MANUSCRIPT, manuscript_id):
+        elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Rejection failed. Manuscript ID is invalid.")
         else
             # reject in db
@@ -341,7 +341,7 @@ while True:
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
         if manuscript_id == "":
             print("Acceptance failed. You didn't enter a manuscript ID.")
-        elif id_is_valid(MANUSCRIPT, manuscript_id):
+        elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Acceptance failed. Manuscript ID is invalid.")
         #elif manuscript doesn't have 3 completed reviews
             print("Acceptance failed. This manuscript doesn't yet have the required 3 reviews.")
@@ -354,7 +354,7 @@ while True:
         pp = raw_input("ManuscriptManager> Enter number of pages: ")
         if manuscript_id == "" or pp == "":
             print("Typeset failed because you left some fields blank.")
-        elif id_is_valid(MANUSCRIPT, manuscript_id):
+        elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Typeset failed. Manuscript ID is invalid.")
         elif could_be_int(pp) == False or int(pp) < 1:
             print("Invalid number of pages.")
@@ -362,7 +362,7 @@ while True:
             # change status to typeset and store number of pages
             print("Typeset successful.")
 
-    # ASSUMPTION: issues are pre-loaded into the db
+    #todo add to readme ASSUMPTION: issues are pre-loaded into the db
     elif user_code == EDITOR and command[0:8] == "schedule":
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
         issue_year = raw_input("ManuscriptManager> Enter issue year (4 digits): ")
@@ -371,7 +371,7 @@ while True:
             print("Schedule failed. Required fields left blank.")
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Schedule failed. Invalid manuscript id.")
-        elif could_be_int(issue_year):
+        elif could_be_int(issue_year) == False:
             print("Schedule failed. Invalid year.")
         elif could_be_int(issue_period_number) == FALSE or int(issue_period_number) > 4 or int(issue_period_number) < 1:
             print("Schedule failed. Invalid period number.")
@@ -388,7 +388,7 @@ while True:
         issue_period = raw_input("ManuscriptManager> Enter issue period: ")
         if issue_year == "" or issue_period == "":
             print("Publish failed. Required fields left blank.")
-        elif could_be_int(issue_year):
+        elif could_be_int(issue_year) == False:
             print("Publish failed. Invalid year.")
         elif could_be_int(issue_period_number) == FALSE or int(issue_period_number) > 4 or int(issue_period_number) < 1:
             print("Publish failed. Invalid period number.")
@@ -400,10 +400,70 @@ while True:
             # make db transactions related to publishing an issue, including setting all manuscripts' statuses to public
             print("Publish succeeded.")
 
-    
+    # # # Reviewer-specific commands # # #
 
+    # todo add to readme - ASSUMPTION: reviewer is already logged in...this seems to make more sense than what the instruction page implied
+    elif user_code == REVIEWER and command[0:6] == "resign":
+        id = raw_input("ManuscriptManager> Enter your reviewer id: ")
+        if id == "":
+            print("You didn't enter an id.")
+        elif id_is_valid(REVIEWER, id) == FALSE:
+            print("Invalid id.")
+        else:
+            # remove reviewer from system
+            print("Thank you for your service.")
 
+    elif user_code == REVIEWER and command[0:6] == "review":
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        accept_or_reject = raw_input("ManuscriptManager> What's your recommendation? (accept/reject): ")
+        appropriateness = raw_input("ManuscriptManager> Appropriateness rating (1 = low, 10 = high): ")
+        clarity = raw_input("ManuscriptManager> Clarity rating (1 = low, 10 = high): ")
+        methodology = raw_input("ManuscriptManager> Methodology rating (1 = low, 10 = high): ")
+        contribution = appropriateness = raw_input("ManuscriptManager> Contribution to field rating (1 = low, 10 = high): ")
+        if manuscript_id == "" or accept_or_reject == "":
+            print("Review failed. Required fields left blank.")
+        elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
+            print("Review failed. Invalid manuscript id.")
+        elif could_be_int(appropriateness) == False or could_be_int(clarity) == False or could_be_int(methodology) == False or could_be_int(contribution) == False \
+            or int(appropriateness) < 1 or int(appropriateness) > 10 or int(clarity) < 1 or int(clarity) > 10 or int(methodology) < 1 or int(methodology) > 10 \
+            or int(contribution) < 1 or int(contribution) > 10:
+            print("One or more invalid ratings. Ratings must be a number between 1 and 10, inclusive.")
+        #elif manuscript not assigned to this reviewer
+            #print("Review failed. You are not a reviewer for this manuscript.")
+        #elif manuscript not in review status
+            #print("Review failed. This manuscript is not currently in review.")
+        elif accept_or_reject == "accept":
+            #add review to db
+            print("Thank you for your review!")
+        elif accept_or_reject == "reject":
+            #add review to db
+            print("Thank you for your review!")
+        else:
+            print("Invalid recommendation (must be 'accept' or 'reject').")
 
+    # todo in readme, mention that this command can be used
+    elif command[0:4] == "help":
+        print("Welcome to ManuscriptManager\n\n")
+        print("General Commands:\n")
+        print("register editor")
+        print("register author")
+        print("register reviewer")
+        print("login\n")
+        print("Commands for authors:\n")
+        print("submit - submit a manuscript")
+        print("status - see the statuses of your manuscripts")
+        print("retract - retract a manuscript\n")
+        print("Commands for editors:\n")
+        print("status - see the status of your manuscripts")
+        print("assign - assign a manuscript to a reviewer")
+        print("reject - reject a manuscript")
+        print("accept - accept a manuscript")
+        print("typeset - typeset a manuscript")
+        print("schedule - schedule a manuscript to appear in an issue")
+        print("publish - publish an issue\n")
+        print("Commands for reviewers\n")
+        print("resign - stop being a reviewer")
+        print("review - review a manuscript")
 
 
     else:
