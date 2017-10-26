@@ -7,6 +7,9 @@ EDITOR = 1
 AUTHOR = 2
 REVIEWER = 3
 
+# Other table ids
+MANUSCRIPT = 4
+
 user_code = NOT_LOGGED_IN;
 id_of_logged_in_user = -1
 
@@ -50,6 +53,32 @@ def status_print(user_type, id):
             print("# {}, {}".format(status, title))
 
     connection.close()
+
+# should return true if the id is in the corresp db
+def id_is_valid(table, id):
+
+    table_name = ""
+    if table == AUTHOR:
+        table_name = "author"
+    elif table == EDITOR:
+        table_name = "editor"
+    elif table == REVIEWER:
+        table_name = "reviewer"
+    elif table == MANUSCRIPT:
+        table_name = "manuscript"
+
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+    find_id_query = "SELECT * FROM " + table_name + " WHERE id" + table_name + " = " + id
+    cursor.execute(find_id_query)
+
+    # If id exists in the table, return true
+    if cursor.rowcount == 1:
+        return True
+
+    return False
+
+
 
 while True:
 
@@ -183,46 +212,48 @@ while True:
         id = raw_input("ManuscriptManager> Enter your id for log-in: ")
 
         # If role is valid, check if id is in the table for that role
-        if role == "editor" or role == "reviewer" or role == "author":
-            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
-            cursor = connection.cursor(buffered=True)
-            find_id_query = "SELECT * FROM " + role + " WHERE id" + role + " = " + id
-            cursor.execute(find_id_query)
+        if role == "editor":
+            if id_is_valid(EDITOR, id):
+                editor_data = cursor.fetchone()
+                editor_id = editor_data[0]
+                editor_name = editor_data[1] + " " + editor_data[3]
 
-            # If id exists in the table, proceed
-            if cursor.rowcount == 1:
-                if role == "editor":
-                    editor_data = cursor.fetchone()
-                    editor_id = editor_data[0]
-                    editor_name = editor_data[1] + " " + editor_data[3]
-
-                    print("Hi, " + editor_name + ".")
-                    user_code = EDITOR
-                    id_of_logged_in_user = editor_id
-                    status_print(EDITOR, editor_id)
-
-                elif role == "reviewer":
-                    reviewer_data = cursor.fetchone()
-                    reviewer_id = reviewer_data[0]
-                    reviewer_name = reviewer_data[1] + " " + reviewer_data[5]
-
-                    print("Hi, " + reviewer_name + ".")
-                    user_code = REVIEWER
-                    id_of_logged_in_user = reviewer_id
-                    status_print(REVIEWER, reviewer_id)
-
-                elif role == "author":
-                    author_data = cursor.fetchone()
-
-                    author_name = author_data[1] + " " + author_data[6]
-                    author_address = author_data[3]
-                    author_id = author_data[0]
-                    print("Hi, " + author_name + ". Your address is: " + author_address + ".")
-                    user_code = AUTHOR
-                    id_of_logged_in_user = author_id
-                    status_print(AUTHOR, author_id)
+                print("Hi, " + editor_name + ".")
+                user_code = EDITOR
+                id_of_logged_in_user = editor_id
+                status_print(EDITOR, editor_id)
             else:
                 print("That id does not exist.")
+
+        elif role == "reviewer":
+
+            if id_is_valid(REVIEWER, id):
+                reviewer_data = cursor.fetchone()
+                reviewer_id = reviewer_data[0]
+                reviewer_name = reviewer_data[1] + " " + reviewer_data[5]
+
+                print("Hi, " + reviewer_name + ".")
+                user_code = REVIEWER
+                id_of_logged_in_user = reviewer_id
+                status_print(REVIEWER, reviewer_id)
+            else:
+                print("That id does not exist.")
+
+        elif role == "author":
+            if id_is_valid(AUTHOR, id):
+
+                author_data = cursor.fetchone()
+
+                author_name = author_data[1] + " " + author_data[6]
+                author_address = author_data[3]
+                author_id = author_data[0]
+                print("Hi, " + author_name + ". Your address is: " + author_address + ".")
+                user_code = AUTHOR
+                id_of_logged_in_user = author_id
+                status_print(AUTHOR, author_id)
+            else:
+                print("That id does not exist.")
+
         else:
             print("That is not a valid role.")
 
@@ -257,16 +288,50 @@ while True:
 
     elif user_code == AUTHOR and command[0:7] == "retract":
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        if manuscript_id == "":
+            print("Canceled retraction. You did not enter a manuscript ID: ")
         are_you_sure = raw_input("ManuscriptManager> Are you sure you want to delete this manuscript? (yes/no): ")
         if are_you_sure == "no":
             print("Canceled retraction")
         elif are_you_sure == "yes":
-            # delete manuscript from db as long as not sent for typesetting
-            print("Successfully deleted manuscript.")
+            if id_is_valid(MANUSCRIPT, manuscript_id) == False:
+                print("Invalid manuscript ID.")
+            #elif manuscript has been sent for typesetting:
+                #print("Manuscript has already been sent for typesetting. Too late!")
+            else:
+                # delete manuscript
+                print("Successfully deleted manuscript.")
         else:
             print("Invalid response.")
 
     # # # Editor-specific commands # # #
+    elif user_code == EDITOR and command[0:6] == "status":
+        status_print(EDITOR, id_of_logged_in_user)
+
+    elif user_code == EDITOR and command[0:6] == "assign":
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        reviewer_id = raw_input("ManuscriptManager> Enter reviewer ID: ")
+        if manuscript_id == "" or reviewer_id == "":
+            print("Assignment failed. Please enter information for all fields.")
+        elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
+            print("Assignment failed. Invalid Manuscript ID")
+        elif id_is_valid(REVIEWER, reviewer_id) == False:
+            print("Assignment failed. Invalid Reviewer ID")
+        else:
+            # enter in db
+            print("Successfully assigned manuscript to reviewer.")
+
+    elif user_code == EDITOR and command[0:6] == "reject":
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        if manuscript_id == "":
+            print("Rejection failed. You didn't enter a manuscript ID.")
+        elif id_is_valid(MANUSCRIPT, manuscript_id):
+            print("Rejection failed. Manuscript ID is invalid.")
+        else
+            # reject in db
+            print("Manuscript successfully rejected.")
+
+    #elif user_code == EDITOR
 
 
     else:
