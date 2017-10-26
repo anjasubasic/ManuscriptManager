@@ -535,14 +535,39 @@ while True:
     elif user_code == EDITOR and command[0:7] == "typeset":
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
         pp = raw_input("ManuscriptManager> Enter number of pages: ")
+
         if manuscript_id == "" or pp == "":
             print("Typeset failed because you left some fields blank.")
+
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Typeset failed. Manuscript ID is invalid.")
+
         elif could_be_int(pp) == False or int(pp) < 1:
             print("Invalid number of pages.")
+
         else:
-            # change status to typeset and store number of pages
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+
+            # Updates the status of the manuscript to 'in typesetting'
+            # The instructions say to also update the timestamp but I added a trigger that does that in the last lab.
+
+            typeset_query = "UPDATE manuscript " \
+                            "SET status = 'in typesetting' " \
+                            "WHERE idManuscript = " + str(manuscript_id)
+            cursor.execute(typeset_query)
+            connection.commit()
+
+            pp_query = "UPDATE acceptedmanuscript " \
+                       "SET pageCount = " + str(pp) + \
+                       " WHERE Manuscript_idManuscript = " + str(manuscript_id)
+
+            cursor.execute(pp_query)
+            connection.commit()
+
+            cursor.close()
+            connection.close()
+
             print("Typeset successful.")
 
     elif user_code == EDITOR and command[0:8] == "schedule":
