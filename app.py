@@ -138,11 +138,60 @@ def get_num_reviews(manuscript_id):
 
 # returns true if this issue exists, false else
 def issue_exists(issue_year, issue_period_number):
-    return True
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+
+    issue_exists_query = "SELECT * " \
+                         "FROM issue " \
+                         "WHERE publicationYear = '" + issue_year + "-01-01' " \
+                         "AND periodNumber = " + issue_period_number
+    cursor.execute(issue_exists_query)
+
+    if cursor.rowcount == 1:
+        cursor.close()
+        connection.close()
+        return True
+
+    cursor.close()
+    connection.close()
+
+    return False
 
 # returns number of pages that issue would have if you added the pages in the manuscript specified by manuscript_id to the number of pages already in the issue
 def get_num_pages_in_issue(issue_year, issue_period_number, manuscript_id):
-    return 0
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+
+    # gets issue id from year and period number
+    get_issue_id_query = "SELECT idIssue " \
+                         "FROM issue " \
+                         "WHERE publicationYear = '" + issue_year + "-01-01' " \
+                         "AND periodNumber = " + issue_period_number
+    cursor.execute(get_issue_id_query)
+    issue_id = cursor.fetchone()[0]
+
+    # 1st sub-query: gets the sum of all pages for manuscripts currently scheduled for the given issue
+    # 2nd sub-query: gets number of pages for the proposed manuscript
+    # Main Query: gets the sum of pages from the two sub-queries.
+    num_pages_query = "SELECT SUM(pages) AS totalPages " \
+                      "FROM ( SELECT SUM(pageCount) AS pages " \
+                             "FROM acceptedmanuscript AM " \
+                             "INNER JOIN manuscript M ON M.idManuscript = AM.Manuscript_idManuscript " \
+                             "WHERE issue_idIssue = " + str(issue_id) + " AND M.status = 'scheduled' " \
+                             "" \
+                             "UNION ALL " \
+                             "" \
+                             "SELECT pageCount AS pages " \
+                             "FROM acceptedManuscript " \
+                             "WHERE Manuscript_idManuscript = " + manuscript_id + ") AS P "
+    cursor.execute(num_pages_query)
+
+    num_pages = cursor.fetchone()[0]
+
+    cursor.close()
+    connection.close()
+
+    return num_pages
 
 # returns the number of manuscripts that are scheduled to be in this issue
 def get_num_manuscripts_for_issue(issue_year, issue_period_number):
@@ -574,18 +623,25 @@ while True:
         manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
         issue_year = raw_input("ManuscriptManager> Enter issue year (4 digits): ")
         issue_period_number = raw_input("ManuscriptManager> Enter issue period number (1/2/3/4): ")
+
         if manuscript_id == "" or issue_year == "" or issue_period_number == "":
             print("Schedule failed. Required fields left blank.")
+
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
             print("Schedule failed. Invalid manuscript id.")
+
         elif could_be_int(issue_year) == False:
             print("Schedule failed. Invalid year.")
+
         elif could_be_int(issue_period_number) == False or int(issue_period_number) > 4 or int(issue_period_number) < 1:
             print("Schedule failed. Invalid period number.")
+
         elif issue_exists(issue_year, issue_period_number) == False:
             print("Schedule failed. That issue does not exist.")
+
         elif get_num_pages_in_issue(issue_year, issue_period_number, manuscript_id) > 100:
             print("Schedule failed because issues cannot have more than 100 pages!")
+
         else:
             # set status to scheduled
             print("Manuscript successfully scheduled.")
