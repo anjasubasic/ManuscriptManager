@@ -540,7 +540,6 @@ while True:
 
             # Updates the status of the manuscript to 'rejected'
             # The instructions say to also update the timestamp but I added a trigger that does that in the last lab.
-
             reject_manuscript_query = "UPDATE manuscript " \
                                       "SET status = 'rejected' " \
                                       "WHERE idManuscript = " + str(manuscript_id)
@@ -570,7 +569,6 @@ while True:
 
             # Updates the status of the manuscript to 'accepted'
             # The instructions say to also update the timestamp but I added a trigger that does that in the last lab.
-
             reject_manuscript_query = "UPDATE manuscript " \
                                       "SET status = 'accepted' " \
                                       "WHERE idManuscript = " + str(manuscript_id)
@@ -643,7 +641,19 @@ while True:
             print("Schedule failed because issues cannot have more than 100 pages!")
 
         else:
-            # set status to scheduled
+            connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+            cursor = connection.cursor(buffered=True)
+
+            # Updates the status of the manuscript to 'scheduled'
+            schedule_manuscript_query = "UPDATE manuscript " \
+                                        "SET status = 'scheduled' " \
+                                        "WHERE idManuscript = " + str(manuscript_id)
+            cursor.execute(schedule_manuscript_query)
+            connection.commit()
+
+            cursor.close()
+            connection.close()
+
             print("Manuscript successfully scheduled.")
 
     elif user_code == EDITOR and command[0:7] == "publish":
