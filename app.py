@@ -288,8 +288,8 @@ while True:
     # # # REGISTER # # #
     if user_code == NOT_LOGGED_IN and command[0:15] == "register editor":
 
-        first_name = raw_input("ManuscriptManager> Enter your first name: ")
-        last_name = raw_input("ManuscriptManager> Enter your last name: ")
+        first_name = raw_input("ManuscriptManager> Enter your first name: ").strip()
+        last_name = raw_input("ManuscriptManager> Enter your last name: ").strip()
         if first_name == "" or last_name == "":
             print("Registration failed. Make sure you enter a value for each field.")
         else:
@@ -308,12 +308,12 @@ while True:
 
     elif user_code == NOT_LOGGED_IN and command[0:15] == "register author":
 
-        first_name = raw_input("ManuscriptManager> Enter your first name: ")
-        middle_initial = raw_input("ManuscriptManager> Enter your middle initial: ")
-        last_name = raw_input("ManuscriptManager> Enter your last name: ")
-        email = raw_input("ManuscriptManager> Enter your email: ")
-        address = raw_input("ManuscriptManager> Enter your address: ")
-        affiliation = raw_input("ManuscriptManager> Enter your affiliation: ")
+        first_name = raw_input("ManuscriptManager> Enter your first name: ").strip()
+        middle_initial = raw_input("ManuscriptManager> Enter your middle initial: ").strip()
+        last_name = raw_input("ManuscriptManager> Enter your last name: ").strip()
+        email = raw_input("ManuscriptManager> Enter your email: ").strip()
+        address = raw_input("ManuscriptManager> Enter your address: ").strip()
+        affiliation = raw_input("ManuscriptManager> Enter your affiliation: ").strip()
         if first_name == "" or last_name == "" or email == "" or address == "" or affiliation == "":
             print("Registration failed. Make sure you enter a value for each field.")
         else:
@@ -334,12 +334,12 @@ while True:
 
     elif user_code == NOT_LOGGED_IN and command[0:17] == "register reviewer":
 
-        first_name = raw_input("ManuscriptManager> Enter your first name: ")
-        last_name = raw_input("ManuscriptManager> Enter your last name: ")
-        middle_initial = raw_input("ManuscriptManager> Enter your middle initial: ")
-        affiliation = raw_input("ManuscriptManager> Enter your affiliation: ")
-        email = raw_input("ManuscriptManager> Enter your email address: ")
-        ri_codes = raw_input("ManuscriptManager> Enter 1 to 3 RICodes separated by the '/' character: ")
+        first_name = raw_input("ManuscriptManager> Enter your first name: ").strip()
+        last_name = raw_input("ManuscriptManager> Enter your last name: ").strip()
+        middle_initial = raw_input("ManuscriptManager> Enter your middle initial: ").strip()
+        affiliation = raw_input("ManuscriptManager> Enter your affiliation: ").strip()
+        email = raw_input("ManuscriptManager> Enter your email address: ").strip()
+        ri_codes = raw_input("ManuscriptManager> Enter 1 to 3 RICodes separated by the '/' character: ").strip()
         ri_codes_list = ri_codes.split('/')
         num_of_entered_ri_codes = len(ri_codes_list)
 
@@ -399,8 +399,8 @@ while True:
 
     # # # LOGIN # # #
     elif user_code == NOT_LOGGED_IN and command[0:5] == "login":
-        role = raw_input("ManuscriptManager> Enter your role (editor/reviewer/author): ")
-        id = raw_input("ManuscriptManager> Enter your id for log-in: ")
+        role = raw_input("ManuscriptManager> Enter your role (editor/reviewer/author): ").strip()
+        id = raw_input("ManuscriptManager> Enter your id for log-in: ").strip()
 
         if role == "" or id == "":
             print("You left one or more required fields blank.")
@@ -440,19 +440,21 @@ while True:
                     user_code = AUTHOR
                     id_of_logged_in_user = author_id
                     status_print(AUTHOR, author_id)
+            else:
+                print("That is not a valid id.")
         else:
             print("That is not a valid role.")
 
     # # # Author-specific commands # # #
     elif user_code == AUTHOR and command[0:6] == "submit":
-        title = raw_input("ManuscriptManager> Enter title of paper: ")
-        affiliation = raw_input("ManuscriptManager> Enter your affiliation for this paper: ")
+        title = raw_input("ManuscriptManager> Enter title of paper: ").strip()
+        affiliation = raw_input("ManuscriptManager> Enter your affiliation for this paper: ").strip()
         ri_code = []
-        ri_code.append(raw_input("ManuscriptManager> Enter the RICode for this paper: "))
-        author2 = raw_input("ManuscriptManager> Enter the second author for this paper (leave blank if no second author): ")
-        author3 = raw_input("ManuscriptManager> Enter the third author for this paper (leave blank if no third author): ")
-        author4 = raw_input("ManuscriptManager> Enter the fourth author for this paper (leave blank if no fourth author): ")
-        filename = raw_input("ManuscriptManager> Enter your paper's filename: ")
+        ri_code.append(raw_input("ManuscriptManager> Enter the RICode for this paper: ").strip())
+        author2 = raw_input("ManuscriptManager> Enter the second author for this paper (leave blank if no second author): ").strip()
+        author3 = raw_input("ManuscriptManager> Enter the third author for this paper (leave blank if no third author): ").strip()
+        author4 = raw_input("ManuscriptManager> Enter the fourth author for this paper (leave blank if no fourth author): ").strip()
+        filename = raw_input("ManuscriptManager> Enter your paper's filename: ").strip()
 
         if title == "" or affiliation == "" or ri_code == "" or filename == "":
             print("Submission failed. One or more required fields were left blank.")
@@ -470,16 +472,18 @@ while True:
                 connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
                 cursor = connection.cursor(buffered=True)
 
+                document = open(filename, 'rb').read()
+
                 # Gets RICode id needed for the manuscript insert query below
                 get_ricode_ids_query = "SELECT idRICode FROM ricode WHERE RIValue = (\"" + ri_code[0] + "\")"
                 cursor.execute(get_ricode_ids_query)
                 ri_code_id = cursor.fetchone()[0]
 
-                add_manuscript_query = "INSERT INTO manuscript (title, dateReceived, status, Editor_idEditor, statusModifiedDateTime, RICode_idRICode) " \
+                add_manuscript_query = "INSERT INTO manuscript (title, dateReceived, status, Editor_idEditor, statusModifiedDateTime, RICode_idRICode, document) " \
                                      " VALUES (\"" + title + "\", \"" + str(datetime.date.today()) + "\", \"" \
-                                       + "submitted" + "\"," + str(7) + ", \"" + str(datetime.date.today()) + "\"," + str(ri_code_id) + ")"
+                                       + "submitted" + "\"," + str(7) + ", \"" + str(datetime.date.today()) + "\"," + str(ri_code_id) + ",\"" + document + "\")"
 
-                cursor.execute(add_manuscript_query)
+                cursor.execute(add_manuscript_query, document)
                 connection.commit()
                 manuscript_id = cursor.lastrowid
 
@@ -494,13 +498,13 @@ while True:
         status_print(AUTHOR, id_of_logged_in_user)
 
     elif user_code == AUTHOR and command[0:7] == "retract":
-        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ").strip()
 
         if manuscript_id == "":
             print("Canceled retraction. You did not enter a manuscript ID: ")
 
         else:
-            are_you_sure = raw_input("ManuscriptManager> Are you sure you want to delete this manuscript? (yes/no): ")
+            are_you_sure = raw_input("ManuscriptManager> Are you sure you want to delete this manuscript? (yes/no): ").strip()
 
             if are_you_sure == "no":
                 print("Canceled retraction")
@@ -509,7 +513,7 @@ while True:
                 if id_is_valid(MANUSCRIPT, manuscript_id) == False:
                     print("Invalid manuscript ID.")
                 elif manuscript_is_typeset(manuscript_id):
-                    print("Manuscript has already been sent for typesetting, or has been published already. Too late!")
+                    print("Manuscript has already been sent for typesetting, or has been published already. Too late!").strip()
                 else:
                     # delete manuscript
                     connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
@@ -527,8 +531,8 @@ while True:
         status_print(EDITOR, id_of_logged_in_user)
 
     elif user_code == EDITOR and command[0:6] == "assign":
-        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
-        reviewer_id = raw_input("ManuscriptManager> Enter reviewer ID: ")
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ").strip()
+        reviewer_id = raw_input("ManuscriptManager> Enter reviewer ID: ").strip()
 
         if manuscript_id == "" or reviewer_id == "":
             print("Assignment failed. Please enter information for all fields.")
@@ -554,7 +558,7 @@ while True:
             print("Successfully assigned manuscript to reviewer.")
 
     elif user_code == EDITOR and command[0:6] == "reject":
-        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ").strip()
         if manuscript_id == "":
             print("Rejection failed. You didn't enter a manuscript ID.")
         elif id_is_valid(MANUSCRIPT, manuscript_id) == False:
@@ -577,7 +581,7 @@ while True:
             print("Manuscript successfully rejected.")
 
     elif user_code == EDITOR and command[0:6] == "accept":
-        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ").strip()
 
         if manuscript_id == "":
             print("Acceptance failed. You didn't enter a manuscript ID.")
@@ -605,8 +609,8 @@ while True:
             print("Manuscript successfully accepted.")
 
     elif user_code == EDITOR and command[0:7] == "typeset":
-        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
-        pp = raw_input("ManuscriptManager> Enter number of pages: ")
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ").strip()
+        pp = raw_input("ManuscriptManager> Enter number of pages: ").strip()
 
         if manuscript_id == "" or pp == "":
             print("Typeset failed because you left some fields blank.")
@@ -643,9 +647,9 @@ while True:
             print("Typeset successful.")
 
     elif user_code == EDITOR and command[0:8] == "schedule":
-        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
-        issue_year = raw_input("ManuscriptManager> Enter issue year (4 digits): ")
-        issue_period_number = raw_input("ManuscriptManager> Enter issue period number (1/2/3/4): ")
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ").strip()
+        issue_year = raw_input("ManuscriptManager> Enter issue year (4 digits): ").strip()
+        issue_period_number = raw_input("ManuscriptManager> Enter issue period number (1/2/3/4): ").strip()
 
         if manuscript_id == "" or issue_year == "" or issue_period_number == "":
             print("Schedule failed. Required fields left blank.")
@@ -690,8 +694,8 @@ while True:
             print("Manuscript successfully scheduled.")
 
     elif user_code == EDITOR and command[0:7] == "publish":
-        issue_year = raw_input("ManuscriptManager> Enter issue year: ")
-        issue_period_number = raw_input("ManuscriptManager> Enter issue period number: ")
+        issue_year = raw_input("ManuscriptManager> Enter issue year: ").strip()
+        issue_period_number = raw_input("ManuscriptManager> Enter issue period number: ").strip()
 
         if issue_year == "" or issue_period_number == "":
             print("Publish failed. Required fields left blank.")
@@ -735,7 +739,7 @@ while True:
 
     # # # Reviewer-specific commands # # #
     elif user_code == REVIEWER and command[0:6] == "resign":
-        id = raw_input("ManuscriptManager> Enter your reviewer id: ")
+        id = raw_input("ManuscriptManager> Enter your reviewer id: ").strip()
 
         if id == "":
             print("You didn't enter an id.")
@@ -754,12 +758,12 @@ while True:
             print("Thank you for your service.")
 
     elif user_code == REVIEWER and command[0:6] == "review":
-        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ")
-        accept_or_reject = raw_input("ManuscriptManager> What's your recommendation? (accept/reject): ")
-        appropriateness = raw_input("ManuscriptManager> Appropriateness rating (1 = low, 10 = high): ")
-        clarity = raw_input("ManuscriptManager> Clarity rating (1 = low, 10 = high): ")
-        methodology = raw_input("ManuscriptManager> Methodology rating (1 = low, 10 = high): ")
-        contribution = raw_input("ManuscriptManager> Contribution to field rating (1 = low, 10 = high): ")
+        manuscript_id = raw_input("ManuscriptManager> Enter manuscript ID: ").strip()
+        accept_or_reject = raw_input("ManuscriptManager> What's your recommendation? (accept/reject): ").strip()
+        appropriateness = raw_input("ManuscriptManager> Appropriateness rating (1 = low, 10 = high): ").strip()
+        clarity = raw_input("ManuscriptManager> Clarity rating (1 = low, 10 = high): ").strip()
+        methodology = raw_input("ManuscriptManager> Methodology rating (1 = low, 10 = high): ").strip()
+        contribution = raw_input("ManuscriptManager> Contribution to field rating (1 = low, 10 = high): ").strip()
 
         if manuscript_id == "" or accept_or_reject == "" or appropriateness == "" or clarity == "" or methodology == "" or contribution == "":
             print("Review failed. Required fields left blank.")
