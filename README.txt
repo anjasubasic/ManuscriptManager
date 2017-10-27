@@ -11,7 +11,8 @@ When submitting a document, you can use manuscript.txt, which we've included for
 
 Assumptions:
 - We assume that the issue table is already populated in the database. (The assignment page doesn't specify any sort of command
-  for "creating" and issue, only adding manuscripts to an issue.) In our provided sql code, we have populated the issue table.
+  for "creating" and issue, only adding manuscripts to an issue.) In our provided sql code, we have populated the issue table: we have included
+  issues 1-4 from 2014 to 2017.
 - We assume that a reviewer can only resign once s/he is logged in. The assignment page seemed to imply that this command could
   be run without logging in, but we didn't think that made much sense.
 - We assume we shouldn't allow authors to retract manuscripts that are scheduled and published, in addition to 'in typesetting' 
