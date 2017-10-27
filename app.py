@@ -42,7 +42,7 @@ def status_print(user_type, id):
             print("# {}, {}".format(title, status))
 
     elif user_type == EDITOR:
-        query = "SELECT * " \
+        query = "SELECT idManuscript, status, date(statusModifiedDateTime) " \
                 "FROM whatsleft " \
                 "ORDER BY status, idManuscript"
         cursor.execute(query)
@@ -348,7 +348,7 @@ while True:
 
         # Number of entered codes must be less than 4 for reviewer to register
         elif num_of_entered_ri_codes > 3:
-            print("Registration failed. Make sure you enter valid RI codes.")
+            print("Registration failed. Make sure you enter no more than three RI codes.")
 
         else:
             input_valid = validate_ri_codes(ri_codes_list, num_of_entered_ri_codes)
@@ -805,6 +805,8 @@ while True:
     elif user_code == REVIEWER and command[0:6] == "status":
         status_print(REVIEWER, id_of_logged_in_user)
 
+    elif command[0:6] == "logout":
+        user_code = NOT_LOGGED_IN
     # # # help command # # #
     elif command[0:4] == "help":
         print("Welcome to ManuscriptManager\n\n")
@@ -813,6 +815,7 @@ while True:
         print("register author")
         print("register reviewer")
         print("login\n")
+        print("logout\n")
         print("Commands for authors:\n")
         print("submit - submit a manuscript")
         print("status - see the statuses of your manuscripts")
