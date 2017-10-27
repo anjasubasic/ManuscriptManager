@@ -7,6 +7,8 @@ How to run the program:
 From the command line, do `python app.py`. This will launch the "ManuscriptManager>" prompt.
 For a list of commands, type the `help` command.
 
+When submitting a document, you can use manuscript.txt, which we've included for your convenience.
+
 Assumptions:
 - We assume that the issue table is already populated in the database. (The assignment page doesn't specify any sort of command
   for "creating" and issue, only adding manuscripts to an issue.) In our provided sql code, we have populated the issue table.

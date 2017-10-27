@@ -17,28 +17,29 @@ Test Cases
     - invalid RICode
 - login
     - empty inputs
+    - invalid role
     - editor role
         - valid id
         - invalid id
+            - trying an editor command (should fail)
     - reviewer role
         - valid id
         - invalid id
+            - trying a reviewer command (should fail)
     - author role
         - valid id
         - invalid id
+            - trying an author command (should fail)
     - invalid role
-- submit as editor (should fail)
-- submit as reviewer (should fail)
 - submit as author
     - empty inputs
     - file does not exist
-    - valid inputs
+    - invalid RICode
+    - valid inputs - especially checking for blob
 - status
     - as author
     - as editor
     - as reviewer 
-- retract as editor (should fail)
-- retract as reviewer (should fail)
 - retract as author
     - empty input
     - are you sure: no
@@ -46,36 +47,26 @@ Test Cases
     - invalid manuscript id
     - manuscript is typeset
     - valid inputs
-- assign as author (fail)
-- assign as reviewer (fail)
 - assign as editor
     - empty inputs
     - invalid manuscript id
     - invalid reviewer id
     - valid inputs
-- reject as author (fail)
-- reject as reviewer (fail)
 - reject as editor
     - empty inputs
     - invalid manuscript id
     - valid inputs
-- accept as author (fail)
-- accept as reviewer(fail)
 - accept as editor
     - empty inputs
     - invalid manuscript id
     - fewer than 3 reviewers
     - valid inputs
-- typeset as author (fail)
-- typset as reviewer (fail)
 - typeset as editor
     - empty inputs
     - manuscript id invalid
     - non-int for page numbers
     - int for page numbers less than 1
     - valid inputs
-- schedule as author
-- schedule as reviewer
 - schedule as editor
     - empty inputs
     - invalid manuscript id
@@ -86,8 +77,6 @@ Test Cases
     - issue doesn't exist in db
     - issue would have more than 100 pages
     - valid case
-- publish by author
-- publish by reviewer
 - publish by editor
     - empty inputs
     - issue year isn't int
@@ -97,14 +86,10 @@ Test Cases
     - issue doesn't exist in db
     - no manuscripts scheduled for issue
     - valid inputs
-- resign by author
-- resign by editor
 - resign by reviewer
     - empty inputs
     - invalid reviewer id
     - valid case
-- review by author
-- review by editor
 - review by reviewer
     - empty inputs
     - invalid manuscript id
@@ -117,3 +102,23 @@ Test Cases
     - reject: valid inputs
     - not entering accept or reject, but something invalid like asdf
 - help
+
+- submit as editor (should fail)
+- submit as reviewer (should fail)
+- retract as editor (should fail)
+- retract as reviewer (should fail)
+- assign as author (fail)
+- assign as reviewer (fail)
+- reject as author (fail)
+- reject as reviewer (fail)
+- accept as author (fail)
+- accept as reviewer(fail)
+- typeset as author (fail)
+- typset as reviewer (fail)
+- schedule as author
+- schedule as reviewer
+- publish by author
+- publish by reviewer
+- review by author
+- review by editor
+
