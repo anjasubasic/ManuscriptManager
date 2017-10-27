@@ -14,6 +14,8 @@ Assumptions:
   be run without logging in, but we didn't think that made much sense.
 - We assume we shouldn't allow authors to retract manuscripts that are scheduled and published, in addition to 'in typesetting' 
   status mentioned in the requirements.
+- If you're already logged in, you can't login again. You must first use the logout command. (So, in order to switch roles (i.e., editor,
+  author, reviewer), you need to log out and then log back in as the new role.)
 
 Our test cases:
 - Please see test_cases.txt for the cases we used to test our app.
