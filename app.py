@@ -276,6 +276,24 @@ def validate_ri_codes(ri_codes, num_of_entered_codes):
 
     return False
 
+def manuscript_belongs_to_author(author_id, manuscript_id):
+    connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
+    cursor = connection.cursor(buffered=True)
+
+    belongs_to_author_query = "SELECT * " \
+                              "FROM submit " \
+                              "WHERE Author_idAuthor = " + str(author_id) + \
+                              " AND Manuscript_idManuscript = " + str(manuscript_id)
+    cursor.execute(belongs_to_author_query)
+
+    if cursor.rowcount == 1:
+        cursor.close()
+        connection.close()
+        return True
+
+    cursor.close()
+    connection.close()
+    return False
 
 ########################
 # # # Main Program # # #
@@ -512,8 +530,13 @@ while True:
             elif are_you_sure == "yes":
                 if id_is_valid(MANUSCRIPT, manuscript_id) == False:
                     print("Invalid manuscript ID.")
+
                 elif manuscript_is_typeset(manuscript_id):
                     print("Manuscript has already been sent for typesetting, or has been published already. Too late!").strip()
+
+                elif manuscript_belongs_to_author(id_of_logged_in_user, manuscript_id) == False:
+                    print("This manuscript does not belong to you.")
+
                 else:
                     # delete manuscript
                     connection = mysql.connector.connect(user=username, password=password, host=host, database=database)
