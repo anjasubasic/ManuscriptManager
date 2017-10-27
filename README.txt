@@ -5,6 +5,10 @@ README
 How to run the program:
 
 From the command line, do `python app.py`. This will launch the "ManuscriptManager>" prompt.
+
+You will be asked for your database login, database password, database host, and database name to use in your connections to the database.
+(Defaults that we used are given in parentheses.)
+
 For a list of commands, type the `help` command.
 
 When submitting a document, you can use manuscript.txt, which we've included for your convenience.
