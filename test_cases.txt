@@ -85,10 +85,6 @@ Test Cases
     - issue doesn't exist in db
     - no manuscripts scheduled for issue
     - valid inputs
-- resign by reviewer
-    - empty inputs
-    - invalid reviewer id
-    - valid case
 - status as reviewer
 - review by reviewer
     - empty inputs
@@ -101,6 +97,10 @@ Test Cases
     - accept: valid inputs
     - reject: valid inputs
     - not entering accept or reject, but something invalid like asdf
+- resign by reviewer
+    - empty inputs
+    - invalid reviewer id
+    - valid case
 - help
 
 - submit as editor (should fail)
