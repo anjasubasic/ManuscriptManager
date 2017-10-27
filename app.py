@@ -210,7 +210,7 @@ def get_num_manuscripts_for_issue(issue_year, issue_period_number):
 
     issue_id = get_issue_id_from_year_number(issue_year, issue_period_number)
 
-    get_num_manuscripts_query = "SELECT COUNT(*) " \
+    get_num_manuscripts_query = "SELECT * " \
                                 "FROM acceptedManuscript " \
                                 "WHERE Issue_idIssue = " + str(issue_id)
     cursor.execute(get_num_manuscripts_query)
