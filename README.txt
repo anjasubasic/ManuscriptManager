@@ -18,6 +18,7 @@ Assumptions:
   status mentioned in the requirements.
 - If you're already logged in, you can't login again. You must first use the logout command. (So, in order to switch roles (i.e., editor,
   author, reviewer), you need to log out and then log back in as the new role.)
+- An editor must accept a manuscript before typesetting it.
 
 Our test cases:
 - Please see test_cases.txt for the cases we used to test our app.

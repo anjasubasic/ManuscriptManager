@@ -36,15 +36,13 @@ Test Cases
     - file does not exist
     - invalid RICode
     - valid inputs - especially checking for blob
-- status
-    - as author
-    - as editor
-    - as reviewer 
+- status as author
 - retract as author
     - empty input
     - are you sure: no
     - are you sure: yes
     - invalid manuscript id
+    - manuscript that isn't yours
     - manuscript is typeset
     - valid inputs
 - assign as editor
@@ -52,6 +50,7 @@ Test Cases
     - invalid manuscript id
     - invalid reviewer id
     - valid inputs
+- status as editor
 - reject as editor
     - empty inputs
     - invalid manuscript id
@@ -59,7 +58,7 @@ Test Cases
 - accept as editor
     - empty inputs
     - invalid manuscript id
-    - fewer than 3 reviewers
+    - fewer than 3 reviews
     - valid inputs
 - typeset as editor
     - empty inputs
@@ -90,6 +89,7 @@ Test Cases
     - empty inputs
     - invalid reviewer id
     - valid case
+- status as reviewer
 - review by reviewer
     - empty inputs
     - invalid manuscript id
