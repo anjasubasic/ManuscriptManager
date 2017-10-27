@@ -299,6 +299,11 @@ def manuscript_belongs_to_author(author_id, manuscript_id):
 # # # Main Program # # #
 ########################
 
+username = raw_input("ManuscriptManager> Enter your database username (root): ").strip()
+password = raw_input("ManuscriptManager> Enter your database password(password): ").strip()
+host = raw_input("ManuscriptManager> Enter the host (127.0.0.1): ").strip()
+database = raw_input("ManuscriptManager> Enter the database name (mydb): ").strip()
+
 while True:
 
     command = raw_input("ManuscriptManager> ")
